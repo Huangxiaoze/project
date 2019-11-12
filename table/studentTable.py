@@ -19,24 +19,15 @@ class Student(QTableView):
                 id integer not null primary key,
                 number varchar(20),
                 name varchar(40),
-                classid int,
-                course_id int,
-                constraint classid foreign key(classid) references class(id),
-                constraint courseid foreign key(course_id) references course(id)
+                sClass varchar(10)
             )
             """
             )
 
-    def get_all_course_data(self):
-        return self.find()
-
-    def get_course_amount(self):
-        return len(self.find())
-
     def find(self,**args):
         condition = []
         for key, value in args.items():  
-            if key in ['id', 'classid','course_id']: 
+            if key == 'id': 
                 condition.append("{0}={1}".format(key,value))
             else:
                 condition.append("{0}='{1}'".format(key,value))
@@ -51,7 +42,7 @@ class Student(QTableView):
         res = []
         while model.next():
             #print((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4)))
-            res.append((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4)))
+            res.append((model.value(0),model.value(1),model.value(2),model.value(3)))
         return res
 
     def update(self,id,**args):
@@ -70,14 +61,14 @@ class Student(QTableView):
         res = model.exec_(sql)
         return res
 
-    def insert(self, number,name,classid,course_id):
+    def insert(self, number,name,sClass):
         try:
             model = QSqlQuery()
             model.exec_('PRAGMA foreign_keys = ON;')
             sql = """
-            insert into student(number,name,classid,course_id) 
-            values('{0}','{1}',{2},{3})
-            """.format(number,name,classid,course_id)
+            insert into student(number,name,sClass) 
+            values('{0}','{1}','{2}')
+            """.format(number,name,sClass)
             model.exec_(sql)
         except e:
             pass

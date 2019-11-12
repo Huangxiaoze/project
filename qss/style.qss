@@ -17,8 +17,6 @@ QLineEdit{color:red;}
 QSpinBox{color:#3AF84D;}
 QComboBox{color:#5BCCFF;}
 
-QTreeWidget{color:#D731F0;text-align:center;background:#e6d4ae;}
-QTreeWidget QHeaderView:section{background:#A2F5E7;}
 
 
 QScrollBar:vertical

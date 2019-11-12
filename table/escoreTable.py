@@ -17,31 +17,19 @@ class EScore(QTableView):
             """
             create table escore(
                 id integer not null primary key,
-                examid int,
                 studentid int,
-                classid int,
-                courseid int,
+                examtype varchar(10),
                 score_json text,
-                constraint examid foreign key(examid) references exam(id),
-                constraint classid foreign key(classid) references class(id),
-                constraint studentid foreign key(studentid) references student(id),
-                constraint courseid foreign key(courseid) references course(id)
+                constraint studentid foreign key(studentid) references student(id)
             )
 
             """
             )
 
-
-    def get_all_escore_data(self):
-        return self.find()
-
-    def get_escore_amount(self):
-        return len(self.find())
-
     def find(self,**args):
         condition = []
         for key, value in args.items(): 
-            if key == 'score_json':  
+            if key == 'score_json' or key == 'examtype':  
                 condition.append("{0}='{1}'".format(key,value))
             else:
                 condition.append("{0}={1}".format(key, value))
@@ -58,7 +46,7 @@ class EScore(QTableView):
         res = []
         while model.next():
             #print((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4),model.value(5)))
-            res.append((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4),model.value(5)))
+            res.append((model.value(0),model.value(1),model.value(2),model.value(3)))
         return res
 
     def update(self,id,**args):
@@ -86,21 +74,16 @@ class EScore(QTableView):
         res = model.exec_(sql)
         return res
 
-    def insert(self, examid,studentid,classid,courseid,score_json):
-        print(type(score_json))
-        print(examid,studentid,classid,courseid,score_json)
+    def insert(self, studentid, examtype,score_json):
         try:
             model = QSqlQuery()
             model.exec_('PRAGMA foreign_keys = ON;')
             sql = """
-            insert into escore(examid,studentid,classid,courseid,score_json) 
-            values({0},{1},{2},{3},'{4}')
-            """.format(examid,studentid,classid,courseid,score_json)
+            insert into escore(studentid, examtype,score_json) 
+            values({0},'{1}','{2}')
+            """.format(studentid, examtype,score_json)
             res = model.exec_(sql)
-            print('插入成绩结果：',res)
-            #print(res)
         except e:
-            #print(e)
             pass
  
  
