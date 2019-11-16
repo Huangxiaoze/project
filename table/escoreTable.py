@@ -20,6 +20,7 @@ class EScore(QTableView):
                 studentid int,
                 examtype varchar(10),
                 score_json text,
+                total_score real,
                 constraint studentid foreign key(studentid) references student(id)
             )
 
@@ -46,7 +47,7 @@ class EScore(QTableView):
         res = []
         while model.next():
             #print((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4),model.value(5)))
-            res.append((model.value(0),model.value(1),model.value(2),model.value(3)))
+            res.append((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4)))
         return res
 
     def update(self,id,**args):
@@ -55,13 +56,16 @@ class EScore(QTableView):
         model = QSqlQuery()
         model.exec_('PRAGMA foreign_keys = ON;')
         for key, value in args.items():
-            sql = "update escore set {0}='{1}' where id={2}".format(key,value,id)
+            if key != 'total_score':
+                sql = "update escore set {0}='{1}' where id={2}".format(key,value,id)
+            else:
+                sql = "update escore set {0}={1} where id={2}".format(key,value,id)
             model.exec_(sql)
 
     def delete(self,**args): # id or studentid + courseid + examid+ classid
         condition = []
         for key, value in args.items(): 
-            if key == 'score_json':  
+            if key == 'score_json' or key == 'examtype':  
                 condition.append("{0}='{1}'".format(key,value))
             else:
                 condition.append("{0}={1}".format(key, value))
@@ -70,18 +74,17 @@ class EScore(QTableView):
         model = QSqlQuery()
         model.exec_('PRAGMA foreign_keys = ON;')
         sql = "delete from escore where {}".format(And)
-        print(sql)
         res = model.exec_(sql)
         return res
 
-    def insert(self, studentid, examtype,score_json):
+    def insert(self, studentid, examtype,score_json, total_score):
         try:
             model = QSqlQuery()
             model.exec_('PRAGMA foreign_keys = ON;')
             sql = """
-            insert into escore(studentid, examtype,score_json) 
-            values({0},'{1}','{2}')
-            """.format(studentid, examtype,score_json)
+            insert into escore(studentid, examtype,score_json,total_score) 
+            values({0},'{1}','{2}',{3})
+            """.format(studentid, examtype,score_json,total_score)
             res = model.exec_(sql)
         except e:
             pass
