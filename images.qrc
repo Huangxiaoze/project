@@ -1,7 +1,6 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
 <qresource>
-<file alias="images/2.jpg">images/2.jpg</file>
 <file alias="images/add1.ico">images/add1.ico</file>
 <file alias="images/add2.ico">images/add2.ico</file>
 <file alias="images/addpage.png">images/addpage.png</file>
@@ -9,6 +8,7 @@
 <file alias="images/b3.jpg">images/b3.jpg</file>
 <file alias="images/back1.jpg">images/back1.jpg</file>
 <file alias="images/bb.jpg">images/bb.jpg</file>
+<file alias="images/bb1.jpg">images/bb1.jpg</file>
 <file alias="images/bb2.jpg">images/bb2.jpg</file>
 <file alias="images/bb3.jpg">images/bb3.jpg</file>
 <file alias="images/blackboard.ico">images/blackboard.ico</file>

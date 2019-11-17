@@ -1146,15 +1146,15 @@ class studentScoreManage(QMainWindow):
 			student_dict[student[1]] = student[0]
 		
 		if examtype[-1] == '2' or (examtype[-1]=='1' and sClass !='11'):
-			weight = 1
+			weight = None
 		else:
 			if sClass == '11':
 				if examtype[-1] == '0':
-					weight = 1/3
+					weight = self.div_3
 				else:
-					weight = 0.5
+					weight = self.div_2
 			else:
-				weight = 0.75
+				weight = self.div_3_4
 
 		# 保存客观题成绩，修改平时总成绩
 		for s_score in datas:
@@ -1162,9 +1162,9 @@ class studentScoreManage(QMainWindow):
 			score = json.loads(exam_score[0][-2])
 			score['0'] = s_score[-1]
 			self.database.escore_table.update(exam_score[0][0],score_json = json.dumps(score),total_score = float(s_score[-1]))
-			if weight!=1:
+			if weight:
 				normal = self.database.escore_table.find(studentid = student_dict[s_score[0]], examtype = sClass)[0]
-				self.database.escore_table.update(id = normal[0], total_score = int(Decimal(str(s_score[-1]))*Decimal(str(weight))+Decimal('0.5')))
+				self.database.escore_table.update(id = normal[0], total_score = int(weight(s_score[-1])+Decimal('0.5')))
 			QApplication.processEvents()
 		#显示成绩
 		if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
@@ -1174,15 +1174,6 @@ class studentScoreManage(QMainWindow):
 		headers,s_datas, student_id = self.get_single_score(examtype = examtype,sClass = sClass,header_decode = stype)
 		self.show_single_score(headers,s_datas,student_id)
 		self.showMessageBox(QMessageBox.Information,'操作结果','导入成功')
-
-	def update_total_score(self, sClass, score_decode): #
-		scores = self.database.escore_table.find(examtype = examtype)
-		for score in scores:
-			s = json.loads(score[-2])
-			total = 0.0
-			for d in score_decode:
-				total+=s[d]
-			self.database.escore_table.update(id = score[0], total_score = total)
 
 	def loadData(self):  #导入学生成绩
 		self.status_bar.showMessage('导入成绩')
@@ -1321,7 +1312,6 @@ class studentScoreManage(QMainWindow):
 			normal = self.database.escore_table.find(studentid = student[0], examtype = sClass)[0][-1]
 			# 期末考试
 			score = self.database.escore_table.find(studentid = student[0], examtype = examtype)[0]
-			print(Decimal(str(normal))*Decimal(str(weights[0])),Decimal(str(normal)),Decimal(str(weights[0])))
 			data.append(int(normal))
 			data.append(Decimal(str(normal))*Decimal(str(weights[0])))
 			data.append(score[-1])
@@ -1350,7 +1340,7 @@ class studentScoreManage(QMainWindow):
 				self.setColumnColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 			self.showAll = False
 		if self.res_is_null:
-			self.showMessageBox(QMessageBox,Information,'搜索结果','内容没找到！')
+			self.showMessageBox(QMessageBox.Information,'搜索结果','内容没找到！')
 			return
 		if self.scrollIndex<=0:
 			self.showMessageBox(QMessageBox.Information,'搜索结果','已到达第一个搜索结果')
@@ -1423,18 +1413,27 @@ class studentScoreManage(QMainWindow):
 	def initSearchWindow(self):
 		self.res_is_null = True
 		self.scrollIndex = None
+		self.showAll = False
 		self.search_rows = []
 		self.searchFrame = QFrame(self)
 		self.searchFrame.resize(self.width(), self.setting['search']["height"])
 		self.searchFrame.move(0, self.height()-self.setting['search']["height"])
-		self.searchFrame.setStyleSheet('background:#edcd9e;border:2px red solid;')
+		self.searchFrame.setStyleSheet('background:{};border:2px red solid;'.format(self.setting['search']['background-color']))
+		
 		self.search_lineEdit = QLineEdit(self.searchFrame)
 		self.search_lineEdit.setPlaceholderText('请输入搜索内容')
-		self.search_lineEdit.setStyleSheet('background:white;')
-		self.search_lineEdit.editingFinished.connect(self.findRes)
+		self.search_lineEdit.setStyleSheet('background:white;border-radius:20px;')
+		action = QAction(self)
+		action.setIcon(QIcon(':./images/search96px.ico'))
+		self.search_lineEdit.addAction(action, QLineEdit.LeadingPosition)
+ #        //QLineEdit::LeadingPosition 在左侧TrailingPosition
+		self.search_lineEdit.textEdited.connect(self.findRes)
+		self.search_lineEdit.returnPressed.connect(self.search)
 		self.search_lineEdit.setMinimumHeight(self.setting['search']["height"]-20)
 		self.search_lineEdit.setAlignment(Qt.AlignCenter)
 		self.search_lineEdit.setFont(QFont('宋体',12))
+
+		
 		quit_button = QPushButton("退出")
 		quit_button.setStyleSheet('background:black;')
 		quit_button.clicked.connect(self.hideSearch)
@@ -1453,13 +1452,14 @@ class studentScoreManage(QMainWindow):
 
 
 		hlayout = QHBoxLayout()
-		hlayout.addWidget(QLabel('               '))
+		#hlayout.addWidget(QLabel('                              '))
 		hlayout.addWidget(self.search_lineEdit)
 		hlayout.addWidget(searchbutton)
 		hlayout.addWidget(findPrev)
 		hlayout.addWidget(findNext)
 		hlayout.addWidget(quit_button)
-		hlayout.addWidget(QLabel('               '))
+		#hlayout.addWidget(QLabel('                              '))
+		hlayout.setContentsMargins(self.width()*0.3,0,self.width()*0.3,0)
 		
 		self.searchFrame.setLayout(hlayout)
 		self.searchFrame.show()

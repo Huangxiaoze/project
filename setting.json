@@ -18,7 +18,8 @@
 	"splitter":{
 	},
 	"search":{
-		"height":60
+		"height":60,
+		"background-color":"#4b4b4a"
 	},
 	"tree":{
 		"selected_color":"#AAF697",

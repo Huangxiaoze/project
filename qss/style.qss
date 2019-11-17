@@ -23,6 +23,7 @@ QComboBox {
     min-height: 45px;
     min-width: 45px;
     background:white;
+    font:blod;
 }
 QComboBox QAbstractItemView:item{
     min-height: 60px;
