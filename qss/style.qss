@@ -1,6 +1,11 @@
-QPushButton:hover{color:#EF7F7F;}
-QPushButton:pressed{color:red;}
-QPushButton{border-radius:8px;border:3px solid black;background:black;padding:6px;color:#C86EF5;}
+QPushButton:hover{opacity:0.8;background:#c9c8c6;}
+QPushButton:pressed{color:white;}
+QPushButton{font-weight:bold;border-radius:8px;border:3px ridge #ccc;background:#aeaca9;padding:6px;color:black;}
+
+#widget1{background:#F0F0F0;}
+#search-frame {
+	background:#4b4b4a;border-top:1px solid #ccc;
+}
 
 QSplitter:handle{background:#69F053;border-style:outset;}
 
@@ -11,23 +16,41 @@ QTableWidget{background:white;color:black;gridline-color:#d4d4d4;selection-backg
 QTableWidget:item{width:80px;height:24px;}
 QTableWidget:item:selected{border:2px solid #217346;color:black;}
 
-QDialog{background:#e6d4ae;}
+QDialog{background:url(:./images/bb3.jpg);color:white;}
 
 QLineEdit{color:red;}
 QSpinBox{color:#3AF84D;}
+
+#courseCombox{
+	border: 1px solid gray;
+	background:white;
+	text-align:center;
+}
+#courseNameCombox{
+	border: 1px solid gray;
+	background:white;
+	text-align:center;
+}
+#scoreCombox{
+	border: 1px solid gray;
+	background:white;
+	text-align:center;
+}
+
+
 
 QComboBox {
     border: 1px solid gray;
     border-radius: 3px;
     padding: 1px 18px 1px 3px;
-    min-height: 45px;
-    min-width: 45px;
+    min-height: 40px;
+    min-width: 150px;
     background:white;
     font:blod;
 }
 QComboBox QAbstractItemView:item{
-    min-height: 60px;
-    min-width: 60px;
+    min-height: 55px;
+    min-width: 55px;
     outline:0px;
 }
 QComboBox QAbstractItemView::item:selected
@@ -59,12 +82,13 @@ QComboBox:on {
 QComboBox:drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    width: 15px;
+    width: 40px;
     border-left-width: 1px;
     border-left-color: darkgray;
     border-left-style: solid;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
+    background:#ccc;
 }
  
 QComboBox::down-arrow {
