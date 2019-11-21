@@ -12,8 +12,6 @@
 <file alias="images/bb2.jpg">images/bb2.jpg</file>
 <file alias="images/bb3.jpg">images/bb3.jpg</file>
 <file alias="images/blackboard.ico">images/blackboard.ico</file>
-<file alias="images/btn.png">images/btn.png</file>
-<file alias="images/class.ico">images/class.ico</file>
 <file alias="images/class1.ico">images/class1.ico</file>
 <file alias="images/class2.ico">images/class2.ico</file>
 <file alias="images/clear.ico">images/clear.ico</file>
@@ -26,6 +24,7 @@
 <file alias="images/down.png">images/down.png</file>
 <file alias="images/down_hover.png">images/down_hover.png</file>
 <file alias="images/dump.ico">images/dump.ico</file>
+<file alias="images/dumpTotal.ico">images/dumpTotal.ico</file>
 <file alias="images/exam1.ico">images/exam1.ico</file>
 <file alias="images/exam2.ico">images/exam2.ico</file>
 <file alias="images/exam3.ico">images/exam3.ico</file>
@@ -48,7 +47,6 @@
 <file alias="images/start1.png">images/start1.png</file>
 <file alias="images/student.ico">images/student.ico</file>
 <file alias="images/subpage.png">images/subpage.png</file>
-<file alias="images/th.jpg">images/th.jpg</file>
 <file alias="images/tiao.png">images/tiao.png</file>
 <file alias="images/totalScore.ico">images/totalScore.ico</file>
 <file alias="images/up.png">images/up.png</file>

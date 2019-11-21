@@ -8,18 +8,17 @@ QPushButton{font-weight:bold;border-radius:8px;border:3px ridge #ccc;background:
 }
 
 QSplitter:handle{background:#69F053;border-style:outset;}
-
+QProgressBar{color:white;}
 
 QTableWidget QHeaderView:section{background:#e6e6e6;}
 QTableWidget QHeaderView:section:hover{background:#9fd5b7;}
-QTableWidget{background:white;color:black;gridline-color:#d4d4d4;selection-background-color:#c6c6c6;border: 2px solid grey;}
-QTableWidget:item{width:80px;height:24px;}
-QTableWidget:item:selected{border:2px solid #217346;color:black;}
+QTableWidget{background:white;color:black;gridline-color:#d4d4d4;selection-background-color:#89CBCA;border: 2px solid grey;}
+QTableWidget:item:focus{border:2px solid #217346;color:black;}
 
 QDialog{background:url(:./images/bb3.jpg);color:white;}
 
-QLineEdit{color:red;}
-QSpinBox{color:#3AF84D;}
+
+QSpinBox{color:black;}
 
 #courseCombox{
 	border: 1px solid gray;

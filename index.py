@@ -14,6 +14,7 @@ from collections import defaultdict
 from decimal import Decimal
 import os
 import images
+from multiprocessing import Pool
 #仅仅windows支持
 import ctypes
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('myappid')
@@ -93,7 +94,6 @@ class studentScoreManage(QMainWindow):
 			normal_score = normal_score_record[-2]
 			# 平时总成绩
 			total = Decimal('0') if normal_score == '' else weights[0](normal_score)			
-			print(total)
 			data.append(normal_score) # 添加平时成绩
 			data.append(str(total)) # 添加平时成绩（加权）
 
@@ -123,14 +123,28 @@ class studentScoreManage(QMainWindow):
 		else:
 			datas = sorted(datas,key = lambda record:(float(record[args['sort_col']]) if record[args['sort_col']]!='' else 0.0),reverse= args['reverse'])
 
-		self.show_single_score(headers, datas, student_id)
+		headers.append('最终平时成绩')
 		self.TABLE_CONTENT = 2
+		self.display_table(headers, datas, student_id)
 
 
 	def clearStudentScore(self):
 		select = self.showSelectBox(QMessageBox.Information,'清空','将清空所有学生及其考试成绩，继续？','确定','取消')
 		if select == QMessageBox.No:
 			return
+		widget = QDialog(self)
+		widget.setWindowTitle('清空详情')
+		progressbar = QProgressBar()
+		progressbar.setValue(0)
+		hlayout = QHBoxLayout()
+		hlayout.addWidget(QLabel("<font color='white'>进度：</font>"))
+		hlayout.addWidget(progressbar)
+		widget.setLayout(hlayout)
+		widget.setMinimumHeight(115)
+		widget.setMinimumWidth(335)
+		widget.show()
+
+
 		sClass= str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		examtype = sClass + str(self.scoreCombox.currentIndex())		
 
@@ -141,12 +155,16 @@ class studentScoreManage(QMainWindow):
 			all_normal_exam.append(sClass+'2')
 
 		students = self.database.student_table.find(sClass = sClass)
-		for student in students:
+		size = len(students)
+		if size == 0:
+			progressbar.setValue(100)
+		for i, student in enumerate(students):
 			for exam in all_normal_exam:
 				self.database.escore_table.delete(studentid = student[0], examtype = exam)
 			res = self.database.student_table.delete(id = student[0])
+			progressbar.setValue((i+1)/size*100)
 			QApplication.processEvents()
-
+		widget.close()
 		if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
 			stype = '012'
 		else:
@@ -197,6 +215,7 @@ class studentScoreManage(QMainWindow):
 
 		self.courseCombox.currentIndexChanged.connect(lambda :self.setCourseName(self.courseCombox, self.courseNameCombox))
 		self.courseNameCombox.currentIndexChanged.connect(lambda:self.setScoreCombox(self.courseCombox,self.courseNameCombox,self.scoreCombox))
+		self.scoreCombox.activated.connect(self.showScoreTable)
 		self.scoreCombox.currentIndexChanged.connect(self.showScoreTable)
 		self.courseCombox.addItems(self.combox_content['course'])
 
@@ -206,6 +225,7 @@ class studentScoreManage(QMainWindow):
 		self.load_student_button = QPushButton("导入学生")
 		self.clear_button = QPushButton('清空')
 		self.clear_button.setToolTip("清空学生和学生成绩")
+		self.save_button = QPushButton('保存修改')
 
 		self.show_total_button.setObjectName('btn1')
 		self.show_total_normal_button.setObjectName('btn2')
@@ -218,6 +238,7 @@ class studentScoreManage(QMainWindow):
 		self.load_student_button.clicked.connect(self.loadStudentData)
 		self.clear_button.clicked.connect(self.clearStudentScore)
 		self.load_button.clicked.connect(self.loadData)
+		self.save_button.clicked.connect(self.modifyScore)
 
 		course = QLabel('课程：')
 		courseName = QLabel("课程名称：")
@@ -242,10 +263,11 @@ class studentScoreManage(QMainWindow):
 		hlayout1 = QHBoxLayout()
 		hlayout1.addWidget(self.show_total_button)
 		hlayout1.addWidget(self.show_total_normal_button)
-		hlayout1.addWidget(self.load_button)
-		hlayout1.addWidget(self.load_student_button)
+		#hlayout1.addWidget(self.load_button)
+		#hlayout1.addWidget(self.load_student_button)
+		hlayout1.addWidget(self.save_button)
 		hlayout1.addWidget(self.clear_button)
-		hlayout1.addStretch(1)
+		#hlayout1.addStretch(1)
 
 		hlayout.addLayout(hlayout1)
 		vlayout = QVBoxLayout()
@@ -253,6 +275,7 @@ class studentScoreManage(QMainWindow):
 		vlayout.addLayout(hlayout)
 
 		self.chooseWidget.setLayout(vlayout)
+		self.chooseWidget.setMinimumHeight(80)
 		vlayout = QVBoxLayout()
 		vlayout.addWidget(self.chooseWidget)
 		vlayout.addWidget(self.Table)
@@ -304,20 +327,22 @@ class studentScoreManage(QMainWindow):
 		self.load_menu = self.menuBar().addMenu('导入')  #
 		self.help_menu = self.menuBar().addMenu('帮助')  #
 
-		self.load_toolbar = self.addToolBar('File') # 工具栏
+		self.load_toolbar = self.addToolBar('导入') # 工具栏
+		self.dump_toolbar = self.addToolBar('导出')
 		self.func_toolbar = self.addToolBar('Edit')
+
 
 		self.status_bar = self.statusBar() # 状态显示
 		self.status_bar.setStyleSheet('color:white;')
 		#self.status_bar.showMessage("hello word")
 		self.load_action = QAction('导入成绩', self)				# 动作
-		self.dump_action = QAction('导出成绩', self)				#
+		self.dump_action = QAction('导出表格', self)				#
 		self.save_action = QAction('保存修改', self)				#
 		self.load_studentData_action = QAction('导入学生',self)
-		self.print_action = QAction('打印',self)
 		self.find_action = QAction('查找',self)
 		self.about_action = QAction('关于{}'.format(self.windowTitle()))
 		self.checkTotalScore_action = QAction('总成绩',self)
+		self.dumptotal_action = QAction('导出总成绩',self)
 
 		self.find_action.setShortcut('Ctrl+F') 				# 设置快捷键
 
@@ -325,33 +350,35 @@ class studentScoreManage(QMainWindow):
 		self.load_action.setIcon(QIcon(r':./images/loadScore2.ico'))
 		self.dump_action.setIcon(QIcon(r':./images/dump.ico'))
 		self.find_action.setIcon(QIcon(r':./images/search96px.ico'))
-		self.print_action.setIcon(QIcon(r':./images/printer.ico'))
 		self.checkTotalScore_action.setIcon(QIcon(r':./images/totalScore.ico'))
+		self.dumptotal_action.setIcon(QIcon(r':./images/dumpTotal.ico'))
 
 		self.load_action.triggered.connect(lambda:self.loadData())		# 动作事件响应
 		self.dump_action.triggered.connect(self.dumpData)		#
 
-		self.load_studentData_action.triggered.connect(lambda:self.loadStudentData())
-		self.print_action.triggered.connect(self.printScoreTable)
+		self.load_studentData_action.triggered.connect(self.loadStudentData)
 		self.find_action.triggered.connect(self.showSearch)
 		self.about_action.triggered.connect(self.showSoftwareMessage)
 		self.checkTotalScore_action.triggered.connect(self.show_total_score)
+		self.dumptotal_action.triggered.connect(self.dumpFinalScore)
 
+																	
+		self.load_toolbar.addAction(self.load_studentData_action)	# 将动作添加到工具栏
+		self.load_toolbar.addAction(self.load_action)
 
-		self.load_toolbar.addAction(self.load_action)# 将动作添加到工具栏
-		self.load_toolbar.addAction(self.dump_action)
-		self.load_toolbar.addAction(self.load_studentData_action)
-		
-		#self.func_toolbar.addAction(self.print_action)
+	
+		self.dump_toolbar.addAction(self.dump_action)
+		self.dump_toolbar.addAction(self.dumptotal_action)
+
 		self.func_toolbar.addAction(self.find_action)
 		self.func_toolbar.addAction(self.checkTotalScore_action)
 							
 		# 将动作添加到菜单栏
-
 		self.load_menu.addAction(self.load_studentData_action)
 		self.load_menu.addAction(self.load_action)
 
 		self.help_menu.addAction(self.about_action)
+
 	def showSoftwareMessage(self):
 		widget = QDialog()
 		widget.setWindowTitle('关于')
@@ -362,33 +389,9 @@ class studentScoreManage(QMainWindow):
 		vlayout = QVBoxLayout()
 		vlayout.addWidget(scroll_area)
 		widget.setLayout(vlayout)
-
-
 		widget.exec_()
 
-
-	def printScoreTable(self):
-		"""
-		打印信号接口函数
-		"""
-		print('haha')
-		self.printer = QPrinter(QPrinter.HighResolution)
-		preview = QPrintPreviewDialog(self.printer, self)
-		preview.paintRequested.connect(self.PlotPic)
-		preview.resize(1000,800)
-		preview.exec_()
-	def PlotPic(self):
-		painter = QPainter(self.printer)
-		image = self.Table.grab(QRect(QPoint(0, 0),QSize(self.Table.width(),self.Table.height()) ) )  # /* 绘制窗口至画布 */
-		rect = painter.viewport()
-		size = image.size();
-		size.scale(rect.size(), Qt.KeepAspectRatio)  # //此处保证图片显示完整
-		painter.setViewport(rect.x(), rect.y(), size.width(), size.height())
-		painter.setWindow(image.rect())
-		painter.drawPixmap(0, 0, image); 
-
 	def getStudentData(self, **args): #班级确定 学号唯一
-
 		all_students = self.database.student_table.find(sClass = args['sClass'])
 		student_id = {}
 		datas = []
@@ -469,18 +472,24 @@ class studentScoreManage(QMainWindow):
 		self.lS_courseNameCombox = QComboBox()
 		self.lS_scoreCombox = QComboBox()
 
-		self.lS_courseCombox.currentIndexChanged.connect(lambda:self.setCourseName(self.lS_courseCombox,self.lS_courseNameCombox))
-		self.lS_courseCombox.addItems(self.combox_content['course'])
+		self.lS_courseCombox.setItemDelegate(QStyledItemDelegate())
+		self.lS_courseNameCombox.setItemDelegate(QStyledItemDelegate())
+		self.lS_scoreCombox.setItemDelegate(QStyledItemDelegate())
 
+		self.lS_courseCombox.addItem(self.courseCombox.currentText())
+		self.lS_courseNameCombox.addItem(self.courseNameCombox.currentText())
+		# self.lS_courseCombox.currentIndexChanged.connect(lambda:self.setCourseName(self.lS_courseCombox,self.lS_courseNameCombox))
+		# self.lS_courseCombox.addItems(self.combox_content['course'])
 
-		filepathlabel = QLabel("请输入文件路径")
+		filepathlabel = QLabel("<font color='white'>文件路径：</font>")
 		filepathbutton = QPushButton('点击选择文件')
 
 		self.loadS_filepath = QLineEdit()
+		self.loadS_filepath.setMinimumHeight(25)
 		filepathbutton.clicked.connect(lambda:self.selectFile(widget,self.loadS_filepath))
 		
 		load = QPushButton('导入')
-		load.clicked.connect(self.loadStudent)
+		load.clicked.connect(lambda:self.loadStudent(widget))
 
 		self.stunumber_spinbox = QSpinBox()
 		self.stuname_spinbox = QSpinBox()
@@ -492,11 +501,11 @@ class studentScoreManage(QMainWindow):
 
 		#布局
 		hlayout1 = QHBoxLayout()
-		hlayout1.addWidget(QLabel('课程：'))
+		hlayout1.addWidget(QLabel("<font color='white'>课程：</font>"))
 		hlayout1.addWidget(self.lS_courseCombox)
 
 		hlayout2 = QHBoxLayout()
-		hlayout2.addWidget(QLabel("课程名称："))
+		hlayout2.addWidget(QLabel("<font color='white'>课程名称：</font>"))
 		hlayout2.addWidget(self.lS_courseNameCombox)
 
 		hlayout3 = QHBoxLayout()
@@ -505,25 +514,29 @@ class studentScoreManage(QMainWindow):
 		hlayout3.addWidget(filepathbutton)
 
 		hlayout4 = QHBoxLayout()
-		hlayout4.addWidget(QLabel("学号："))
+		hlayout4.addWidget(QLabel("<font color='white'>学号：</font>"))
 		hlayout4.addWidget(self.stunumber_spinbox)
 
 		hlayout5 = QHBoxLayout()
-		hlayout5.addWidget(QLabel('姓名：'))
+		hlayout5.addWidget(QLabel("<font color='white'>姓名：</font>"))
 		hlayout5.addWidget(self.stuname_spinbox)
 
 		vlayout = QVBoxLayout()
 		vlayout.addLayout(hlayout1)
 		vlayout.addLayout(hlayout2)
 		vlayout.addLayout(hlayout3)
-		vlayout.addWidget(QLabel('学生信息所在的列数：'))
+		vlayout.addWidget(QLabel("<font color='white'>学生信息所在的列数：</font>"))
 		vlayout.addLayout(hlayout4)
 		vlayout.addLayout(hlayout5)
 
 		self.ls_progressbar = QProgressBar()
 		self.ls_progressbar.setValue(0)
+
+		hlayout6 = QHBoxLayout()
+		hlayout6.addWidget(QLabel("<font color='white'>进度：</font>"))
+		hlayout6.addWidget(self.ls_progressbar)
 		
-		vlayout.addWidget(self.ls_progressbar)
+		vlayout.addLayout(hlayout6)
 		vlayout.addWidget(load)
 
 		widget.setLayout(vlayout)
@@ -531,35 +544,9 @@ class studentScoreManage(QMainWindow):
 		widget.exec_()
 		self.status_bar.showMessage('')
 
-	def selectFile(self,parent, lineEdit):
-		dig=QFileDialog(parent)
-		if dig.exec_():
-			#接受选中文件的路径，默认为列表
-			filenames=dig.selectedFiles()
-			lineEdit.setText(filenames[0])
-			#列表中的第一个元素即是文件路径，以只读的方式打开文件
-	def showMessageBox(self, icon, title, content,button_text='确定', button_role = QMessageBox.YesRole):
-		content = "<font color='white'>"+content+'</font>'
-		box = QMessageBox(icon,title, content,parent = self)
-		# box.setWindowOpacity()
-		box.addButton(button_text, button_role)
-		box.exec_()	
-	def showSelectBox(self,icon,title, content,yes_content, no_content):
-		content = "<font color='white'>"+content+'</font>'
-		box = QMessageBox(QMessageBox.Question,title,content,parent = self)
-		yes= box.addButton(yes_content,QMessageBox.YesRole)
-		no = box.addButton(no_content,QMessageBox.NoRole)
-		box.exec_()
-		if box.clickedButton() == yes:
-			return QMessageBox.Yes
-		elif box.clickedButton() == no:
-			return QMessageBox.No
-		else:
-			return None
-
-	def loadStudent(self): #导入学生表，如果学生已经存在了，还要导入会造成数据重复，还没写这个逻辑
+	def loadStudent(self, parent): #导入学生表，如果学生已经存在了，还要导入会造成数据重复，还没写这个逻辑
 		filepath = self.loadS_filepath.text().strip()
-		sClass = str(self.lS_courseCombox.currentIndex()) + str(self.lS_courseNameCombox.currentIndex())
+		sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		if filepath == '':
 			self.showMessageBox(QMessageBox.Warning,'导入失败','请选择文件')
 			return
@@ -591,7 +578,45 @@ class studentScoreManage(QMainWindow):
 
 		self.showStudentTable(headers,datas, student_id)
 		QApplication.processEvents()
+		parent.close()
 		self.showMessageBox(QMessageBox.Information,'操作结果','导入成功')
+
+	def selectFile(self,parent, lineEdit):
+		dig=QFileDialog(parent)
+		if dig.exec_():
+			#接受选中文件的路径，默认为列表
+			filenames=dig.selectedFiles()
+			lineEdit.setText(filenames[0])
+			#列表中的第一个元素即是文件路径，以只读的方式打开文件
+	def showMessageBox(self, icon, title, content,button_text='确定', button_role = QMessageBox.YesRole):
+		content = "<font color='white'>"+content+'</font>'
+		box = QMessageBox(icon,title, content,parent = self)
+		box.addButton(button_text, button_role)
+		box.exec_()	
+	def showSelectBox(self,icon,title, content,yes_content, no_content):
+		content = "<font color='white'>"+content+'</font>'
+		box = QMessageBox(QMessageBox.Question,title,content,parent = self)
+		yes= box.addButton(yes_content,QMessageBox.YesRole)
+		no = box.addButton(no_content,QMessageBox.NoRole)
+		box.exec_()
+		if box.clickedButton() == yes:
+			return QMessageBox.Yes
+		elif box.clickedButton() == no:
+			return QMessageBox.No
+		else:
+			return None
+
+	def deleteScoreRecord(self,sClass, studentid):
+		all_exam = [sClass]
+		all_exam.append(sClass+'0')
+		all_exam.append(sClass+'1')
+		if sClass == '11':
+			all_exam.append(sClass+'2')
+			for exam in all_exam:
+				self.database.escore_table.delete(studentid = studentid, examtype = exam)
+		else:
+			for exam in all_exam:
+				self.database.escore_table.delete(studentid = studentid, examtype = exam)
 
 	def createScoreRecord(self,sClass, studentid):
 		all_exam = []
@@ -666,6 +691,8 @@ class studentScoreManage(QMainWindow):
 						break
 				if not data_correct:
 					break
+			QApplication.processEvents()
+
 		if not data_correct:
 			self.IS_USER_CHANGEITEM = True	
 			self.showMessageBox(QMessageBox.Warning,'更新失败','请检查数据是否正确')
@@ -690,9 +717,18 @@ class studentScoreManage(QMainWindow):
 					self.IS_USER_CHANGEITEM = True
 					self.showMessageBox(QMessageBox.Warning,'更改失败','学号不能重复')
 					return
+				QApplication.processEvents()
 			# 学号不重复， 数据也是正确的
 			sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 			examtype = sClass + str(self.scoreCombox.currentIndex())
+			all_normal_exam = []
+			all_normal_exam.append(sClass+'0')
+			if sClass == '11':
+				all_normal_exam.append(sClass+'1')
+				weights = [self.div_6, self.div_3 , self.div_2]
+			else:
+				weights = [self.div_4, self.div_3_4]
+
 			
 			for row in add:
 				if self.TABLE_CONTENT == 2:
@@ -734,7 +770,22 @@ class studentScoreManage(QMainWindow):
 					else:
 						score['2'] = None
 				self.database.escore_table.update(id = exam_score[0], score_json = json.dumps(score), total_score = total_score)
-			
+
+				# 修改总平时成绩	
+				exam_score = self.database.escore_table.find(examtype = sClass, studentid = studentid)
+				normal_score = exam_score[0][-2]
+
+				total_score = Decimal('0')
+				if normal_score != '':
+					total_score = weights[0](normal_score)
+				
+				for i in range(len(all_normal_exam)):
+					score = self.database.escore_table.find(examtype = all_normal_exam[i],studentid = studentid)[0][-1]
+					total_score += weights[i+1](score)
+				self.database.escore_table.update(id = exam_score[0][0], total_score = int(total_score+Decimal('0.5')))
+
+				QApplication.processEvents()
+				
 			for row in del_row:
 				if self.TABLE_CONTENT == 2:
 					break;
@@ -751,14 +802,7 @@ class studentScoreManage(QMainWindow):
 				if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
 					score['2'] = None
 				self.database.escore_table.update(id = exam_score[0], score_json = json.dumps(score), total_score = total_score)
-
-			all_normal_exam = []
-			all_normal_exam.append(sClass+'0')
-			if sClass == '11':
-				all_normal_exam.append(sClass+'1')
-				weights = [self.div_6, self.div_3 , self.div_2]
-			else:
-				weights = [self.div_4, self.div_3_4]
+				QApplication.processEvents()
 
 			#修改成绩
 			for row in modify:
@@ -767,7 +811,6 @@ class studentScoreManage(QMainWindow):
 				studentid = self.STUDENT_ID[self.TABLE_DATA[row][0]]
 				#更新学生信息
 				self.database.student_table.update(id = studentid, number = number, name=name)
-				
 				if self.TABLE_CONTENT == 1: # 修改普通考试成绩
 					# 获取考试成绩记录
 					exam_score = self.database.escore_table.find(examtype = examtype, studentid = studentid)[0]
@@ -798,12 +841,6 @@ class studentScoreManage(QMainWindow):
 							score['2'] = None
 					
 					self.database.escore_table.update(id = exam_score[0], score_json = json.dumps(score), total_score = total_score)
-					if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
-						stype = '012'
-					else:
-						stype = '01'
-					headers,datas,student_id = self.get_single_score(examtype = examtype,sClass = sClass,header_decode = stype)
-					self.show_single_score(headers,datas,student_id)
 
 					# 修改总平时成绩	
 					exam_score = self.database.escore_table.find(examtype = sClass, studentid = studentid)
@@ -817,7 +854,7 @@ class studentScoreManage(QMainWindow):
 						score = self.database.escore_table.find(examtype = all_normal_exam[i],studentid = studentid)[0][-1]
 						total_score += weights[i+1](score)
 					self.database.escore_table.update(id = exam_score[0][0], total_score = int(total_score+Decimal('0.5')))
-			
+		
 				elif self.TABLE_CONTENT == 2: # 修改平时成绩	
 					exam_score = self.database.escore_table.find(examtype = sClass, studentid = studentid)
 					normal_score = self.Table.item(row,2).text().strip()
@@ -827,8 +864,20 @@ class studentScoreManage(QMainWindow):
 						total_score = 0
 					else:
 						total_score = float(score)
-
 					self.database.escore_table.update(id = exam_score[0][0],score_json = normal_score, total_score = total_score)
+				QApplication.processEvents()
+
+			if self.TABLE_CONTENT == 1:# 此时表格显示的是成绩信息
+				if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
+					stype = '012'
+				else:
+					stype = '01'
+				headers,datas,student_id = self.get_single_score(examtype = examtype,sClass = sClass,header_decode = stype, sort_col = self.CURRENTCOL, reverse = self.REVERSE)
+				self.show_single_score(headers,datas,student_id)
+			elif self.TABLE_CONTENT == 2: # 此时表格显示的是总平时成绩
+				self.show_total_normal_score(sort_col = self.CURRENTCOL, reverse = self.REVERSE)
+			elif self.TABLE_CONTENT == 3:
+				self.show_total_score()
 
 		self.showMessageBox(QMessageBox.Information,'更改结果','更改成功')
 		self.IS_USER_CHANGEITEM = True		
@@ -1071,22 +1120,51 @@ class studentScoreManage(QMainWindow):
 		verticalHeader = self.Table.verticalHeader()
 
 		horizontalHeader.setFont(QFont('宋体',11,QFont.Bold))
+		horizontalHeader.setMinimumHeight(50)
 
 		horizontalHeader.setSectionResizeMode(QHeaderView.Stretch)
 		# horizontalHeader.setStretchLastSection(True)
 		horizontalHeader.setDefaultSectionSize(self.setting['table']['cell_width'])
 		verticalHeader.setDefaultSectionSize(self.setting['table']['cell_height'])
-		#self.Table.setFocusPolicy(Qt.NoFocus)
+		# self.Table.setFocusPolicy(Qt.NoFocus)
 		self.Table.horizontalHeader().sectionClicked.connect(self.clickTableHeader)
 		self.Table.itemChanged.connect(self.modifyTable)   # 处于显示成绩状态
 
-		self.Table.setContextMenuPolicy(Qt.CustomContextMenu)
-		self.Table.customContextMenuRequested.connect(self.createRightMenu_for_table)
-		
+		self.formerRow = None
+		verticalHeader.setContextMenuPolicy(Qt.CustomContextMenu)
+		verticalHeader.customContextMenuRequested.connect(self.createRightMenu_for_table)
+
 		self.TABLE_HEADERS=[]
 		self.TABLE_DATA = []
 		self.TABLE_QUESTION_WEIGHT =None
 		self.TABLE_CHANGE = False
+	
+	def createRightMenu_for_table(self):
+		menu = QMenu(self.Table)
+		del_action = QAction('删除',self.Table)
+		del_action.setIcon(QIcon("./images/clear.ico"))
+		del_action.triggered.connect(self.deleteRow)
+
+		menu.addAction(del_action)
+		menu.exec_(QCursor.pos())
+	
+	def deleteRow(self):
+		if self.TABLE_CONTENT == 2 or self.TABLE_CONTENT == 3:
+			return
+		sClass= str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
+		examtype = sClass + str(self.scoreCombox.currentIndex())
+		currentRow = self.Table.currentRow()
+		number = self.Table.item(currentRow,0).text()
+		studentid = self.STUDENT_ID[number]
+		self.deleteScoreRecord(sClass, studentid)
+		self.database.student_table.delete(id = studentid)
+		if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
+			stype = '012'
+		else:
+			stype = '01'
+		headers,datas,student_id = self.get_single_score(examtype = examtype,sClass = sClass,header_decode = stype, sort_col = self.CURRENTCOL, reverse = self.REVERSE)
+		self.show_single_score(headers,datas,student_id)
+		
 
 	def show_single_score(self,headers:'表头数据 list', datas, student_id):#显示成绩表
 		self.TABLE_CONTENT = 1
@@ -1120,24 +1198,118 @@ class studentScoreManage(QMainWindow):
 				node = QTableWidgetItem(str(data))
 				node.setTextAlignment(Qt.AlignCenter)
 				self.Table.setItem(i,j,node)
-				if (self.TABLE_CONTENT==1 and j==len(headers)-1) or self.TABLE_CONTENT == 2: #禁止修改总成绩
+				if (self.TABLE_CONTENT==1 and j==len(headers)-1): #禁止修改总成绩
 					node.setFlags(Qt.ItemIsEnabled)
+				elif self.TABLE_CONTENT == 2:  # 处于查看总平时成绩状态。
+					if j!=2 :
+						node.setFlags(Qt.ItemIsEnabled)
+				elif self.TABLE_CONTENT == 3:  # 处于查看总成绩状态，不允许修改表格。
+					node.setFlags(Qt.ItemIsEnabled)
+
 		for i, item in enumerate(self.addRow):
 			for j, data in enumerate(item):
 				node = QTableWidgetItem(str(data))
 				node.setTextAlignment(Qt.AlignCenter)
 				self.Table.setItem(i+len(datas),j,node)
-				if (self.TABLE_CONTENT==1 and j==len(headers)-1) or self.TABLE_CONTENT == 2:
+				if (self.TABLE_CONTENT==1 and j==len(headers)-1):
 					node.setFlags(Qt.ItemIsEnabled)
-
-		xsize = len(headers)
-		#print(xsize)
-		#self.Table.setMaximumWidth(xsize*self.setting['table']['cell_width']+38)
+				elif self.TABLE_CONTENT in [2,3]:
+					node.setFlags(Qt.ItemIsEnabled)
 		self.IS_USER_CHANGEITEM = True
 
-	def loadScore(self): #导入成绩，接口函数
-		sClass = str(self.ld_courseCombox.currentIndex()) + str(self.ld_courseNameCombox.currentIndex())
-		examtype = sClass + str(self.ld_scoreCombox.currentIndex())
+
+
+	def loadData(self):  #导入学生成绩
+		self.status_bar.showMessage('导入成绩')
+		widget = QDialog(self)
+		widget.setWindowTitle('导入到')
+
+		self.ld_courseCombox = QComboBox()
+		self.ld_courseNameCombox = QComboBox()
+		self.ld_scoreCombox = QComboBox()
+
+		self.ld_courseCombox.setItemDelegate(QStyledItemDelegate())
+		self.ld_courseNameCombox.setItemDelegate(QStyledItemDelegate())
+		self.ld_scoreCombox.setItemDelegate(QStyledItemDelegate())
+
+		self.ld_courseCombox.addItem(self.courseCombox.currentText())
+		self.ld_courseNameCombox.addItem(self.courseNameCombox.currentText())
+		self.ld_scoreCombox.addItem(self.scoreCombox.currentText())
+
+		filepathlabel = QLabel("<font color='white'>文件路径：</font>")
+		filepathbutton = QPushButton('点击选择文件')
+		self.loadscore_filepath = QLineEdit()
+		self.loadscore_filepath.setMinimumHeight(25)
+		filepathbutton.clicked.connect(lambda:self.selectFile(widget,self.loadscore_filepath))
+
+		hlayout1 = QHBoxLayout()
+		hlayout1.addWidget(QLabel("<font color='white'>课程：</font>"))
+		hlayout1.addWidget(self.ld_courseCombox)
+
+		hlayout2 = QHBoxLayout()
+		hlayout2.addWidget(QLabel("<font color='white'>课程名称：</font>"))
+		hlayout2.addWidget(self.ld_courseNameCombox)
+		
+		hlayout3 = QHBoxLayout()
+		hlayout3.addWidget(QLabel("<font color='white'>考试：</font>"))
+		hlayout3.addWidget(self.ld_scoreCombox)
+
+
+		hlayout4 = QHBoxLayout()
+		hlayout4.addWidget(filepathlabel)
+		hlayout4.addWidget(self.loadscore_filepath)
+		hlayout4.addWidget(filepathbutton)
+
+		self.stunumber_spinbox = QSpinBox()
+		self.stuname_spinbox = QSpinBox()
+		self.objective_spinbox = QSpinBox()
+		self.stunumber_spinbox.setRange(1,100)
+		self.stuname_spinbox.setRange(1,100)
+		self.objective_spinbox.setRange(1,100)
+		self.stunumber_spinbox.setValue(1)
+		self.stuname_spinbox.setValue(2)
+		self.objective_spinbox.setValue(3)
+
+		hlayout5 = QHBoxLayout()
+		hlayout5.addWidget(QLabel("<font color='white'>学号：</font>"))
+		hlayout5.addWidget(self.stunumber_spinbox)
+
+		hlayout6 = QHBoxLayout()
+		hlayout6.addWidget(QLabel("<font color='white'>姓名：</font>"))
+		hlayout6.addWidget(self.stuname_spinbox)
+
+		hlayout7 = QHBoxLayout()
+		hlayout7.addWidget(QLabel("<font color='white'>客观题：</font>"))
+		hlayout7.addWidget(self.objective_spinbox)
+
+		vlayout = QVBoxLayout()
+		vlayout.addLayout(hlayout1)
+		vlayout.addLayout(hlayout2)
+		vlayout.addLayout(hlayout3)
+		vlayout.addLayout(hlayout4)
+		vlayout.addLayout(hlayout5)
+		vlayout.addLayout(hlayout6)
+		vlayout.addLayout(hlayout7)
+
+		self.ld_progressbar = QProgressBar()
+		self.ld_progressbar.setValue(0)
+
+		hlayout8 = QHBoxLayout()
+		hlayout8.addWidget(QLabel("<font color='white'>进度：</font>"))
+		hlayout8.addWidget(self.ld_progressbar)
+		vlayout.addLayout(hlayout8)
+
+		save_button = QPushButton('导入成绩')
+		save_button.clicked.connect(lambda:self.loadScore(widget))
+		vlayout.addWidget(save_button)
+
+		widget.setLayout(vlayout)
+		widget.exec_()
+		self.status_bar.showMessage('')
+
+	def loadScore(self,parent): #导入成绩，接口函数
+		sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
+		examtype = sClass + str(self.scoreCombox.currentIndex())
 		# 检查文件路径是否为空，或者文件是否存在
 		filepath = self.loadscore_filepath.text()
 		if filepath == '':
@@ -1167,10 +1339,12 @@ class studentScoreManage(QMainWindow):
 		d_sub_s = list(set(d_students.keys()) - set(s_students.keys()))
 		s_sub_d = list(set(s_students.keys()) - set(d_students.keys()))
 		
-		for number in d_sub_s: # 数据表减去学生表中剩下的学生即是没有被登记在学生表中的学生，需要添加到学生表中。
+		size = len(d_sub_s) + len(datas)
+		for i,number in enumerate(d_sub_s): # 数据表减去学生表中剩下的学生即是没有被登记在学生表中的学生，需要添加到学生表中。
 			self.database.student_table.insert(number, d_students[number],sClass)
 			studentid = self.database.student_table.find(sClass = sClass, number = number)[0][0]
 			self.createScoreRecord(sClass, studentid)
+			self.ld_progressbar.setValue((i+1)/size*100)			
 			QApplication.processEvents()
 		# for number in s_sub_d: # 学生表减去成绩表中的学生剩下的即是没有考试成绩记录的学生，需要在末尾添加成绩。
 
@@ -1193,17 +1367,18 @@ class studentScoreManage(QMainWindow):
 				weight = self.div_3_4
 
 		# 保存客观题成绩，修改平时总成绩
-		size = len(datas)
+		count = len(d_sub_s)
 		for i, s_score in enumerate(datas):
 			exam_score = self.database.escore_table.find(studentid = student_dict[s_score[0]], examtype = examtype)
 			score = json.loads(exam_score[0][-2])
 			score['0'] = s_score[-1]
 			self.database.escore_table.update(exam_score[0][0],score_json = json.dumps(score),total_score = float(s_score[-1]))
-			if weight:
+			if weight:# 非期末成绩
 				normal = self.database.escore_table.find(studentid = student_dict[s_score[0]], examtype = sClass)[0]
 				self.database.escore_table.update(id = normal[0], total_score = int(weight(s_score[-1])+Decimal('0.5')))
-			self.ld_progressbar.setValue((i+1)/size*100)
+			self.ld_progressbar.setValue((i+count+1)/size*100)
 			QApplication.processEvents()
+		
 		#显示成绩
 		if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
 			stype = '012'
@@ -1211,88 +1386,28 @@ class studentScoreManage(QMainWindow):
 			stype = '01'	
 		headers,s_datas, student_id = self.get_single_score(examtype = examtype,sClass = sClass,header_decode = stype)
 		self.show_single_score(headers,s_datas,student_id)
+		parent.close()
 		self.showMessageBox(QMessageBox.Information,'操作结果','导入成功')
 
-	def loadData(self):  #导入学生成绩
-		self.status_bar.showMessage('导入成绩')
-		widget = QDialog(self)
-		widget.setWindowTitle('导入到')
+	def dumpFinalScore(self):
+		filepath, filetype = QFileDialog.getSaveFileName(self,
+			'请选择导出的目录',
+			".",
+			"""
+			Microsoft Excel 文件(*.xlsx);;
+			Microsoft Excel 97-2003 文件(*.xls)
+			""")
+		if filepath=='':
+			return
 
-		self.ld_courseCombox = QComboBox()
-		self.ld_courseNameCombox = QComboBox()
-		self.ld_scoreCombox = QComboBox()
+		sClass = str(self.courseCombox.currentIndex())+str(self.courseNameCombox.currentIndex())
+		headers, datas ,student_id = self.get_total_score(sClass,isDumpTotal = True)
+		success, tip = processData.dumpData(filepath, headers, datas)
 
-		self.ld_courseCombox.currentIndexChanged.connect(lambda:self.setCourseName(self.ld_courseCombox,self.ld_courseNameCombox))
-		self.ld_courseNameCombox.currentIndexChanged.connect(lambda:self.setScoreCombox(self.ld_courseCombox,self.ld_courseNameCombox,self.ld_scoreCombox))
-
-		self.ld_courseCombox.addItems(self.combox_content['course'])
-
-		filepathlabel = QLabel("文件路径")
-		filepathbutton = QPushButton('点击选择文件')
-		self.loadscore_filepath = QLineEdit()
-		filepathbutton.clicked.connect(lambda:self.selectFile(widget,self.loadscore_filepath))
-
-		hlayout1 = QHBoxLayout()
-		hlayout1.addWidget(QLabel('课程：'))
-		hlayout1.addWidget(self.ld_courseCombox)
-
-		hlayout2 = QHBoxLayout()
-		hlayout2.addWidget(QLabel("课程名称："))
-		hlayout2.addWidget(self.ld_courseNameCombox)
-		
-		hlayout3 = QHBoxLayout()
-		hlayout3.addWidget(QLabel('成绩：'))
-		hlayout3.addWidget(self.ld_scoreCombox)
-
-
-		hlayout4 = QHBoxLayout()
-		hlayout4.addWidget(filepathlabel)
-		hlayout4.addWidget(self.loadscore_filepath)
-		hlayout4.addWidget(filepathbutton)
-
-		self.stunumber_spinbox = QSpinBox()
-		self.stuname_spinbox = QSpinBox()
-		self.objective_spinbox = QSpinBox()
-		self.stunumber_spinbox.setRange(1,100)
-		self.stuname_spinbox.setRange(1,100)
-		self.objective_spinbox.setRange(1,100)
-		self.stunumber_spinbox.setValue(1)
-		self.stuname_spinbox.setValue(2)
-		self.objective_spinbox.setValue(3)
-
-		hlayout5 = QHBoxLayout()
-		hlayout5.addWidget(QLabel("学号："))
-		hlayout5.addWidget(self.stunumber_spinbox)
-
-		hlayout6 = QHBoxLayout()
-		hlayout6.addWidget(QLabel("姓名："))
-		hlayout6.addWidget(self.stuname_spinbox)
-
-		hlayout7 = QHBoxLayout()
-		hlayout7.addWidget(QLabel("客观题："))
-		hlayout7.addWidget(self.objective_spinbox)
-
-		vlayout = QVBoxLayout()
-		vlayout.addLayout(hlayout1)
-		vlayout.addLayout(hlayout2)
-		vlayout.addLayout(hlayout3)
-		vlayout.addLayout(hlayout4)
-		vlayout.addLayout(hlayout5)
-		vlayout.addLayout(hlayout6)
-		vlayout.addLayout(hlayout7)
-
-		self.ld_progressbar = QProgressBar()
-		self.ld_progressbar.setValue(0)
-
-		vlayout.addWidget(self.ld_progressbar)
-
-		save_button = QPushButton('导入成绩')
-		save_button.clicked.connect(self.loadScore)
-		vlayout.addWidget(save_button)
-
-		widget.setLayout(vlayout)
-		widget.exec_()
-		self.status_bar.showMessage('')
+		if success:
+			self.showMessageBox(QMessageBox.Information,'成功',tip)
+		else:
+			self.showMessageBox(QMessageBox.Warning,'失败',tip)		
 
 	def dumpData(self):
 		filepath, filetype = QFileDialog.getSaveFileName(self,
@@ -1311,16 +1426,7 @@ class studentScoreManage(QMainWindow):
 		else:
 			self.showMessageBox(QMessageBox.Warning,'失败',tip)
 
-
-	def createRightMenu_for_table(self):
-		print("hello")
-		menu = QMenu(self.Table)
-		del_action = QAction('删除',self.Table)
-		menu.addAction(del_action)
-		menu.exec_(QCursor.pos())
-
-
-		
+	
 	def show_total_score(self):
 		sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		headers, datas, studentid = self.get_total_score(
@@ -1333,13 +1439,15 @@ class studentScoreManage(QMainWindow):
 		self.display_table(headers, datas, studentid)
 		QApplication.processEvents()
 	
-	def get_total_score(self, sClass,sort_col= 0, reverse = False):#查看所有成绩，禁止修改表格，可以修改考试所占比重
+	def get_total_score(self, sClass,sort_col= 0, reverse = False, isDumpTotal = False):#查看所有成绩，禁止修改表格，可以修改考试所占比重
 		if sClass == '11':
 			weights = [0.6, 0.4]
 		else:
 			weights = [0.4, 0.6]
-
-		headers = ['学号','姓名','平时总成绩','平时总成绩(加权)','期末考试成绩','期末考试成绩(加权)','附加题','最终成绩']
+		if not isDumpTotal:
+			headers = ['学号','姓名','总平时成绩','总平时成绩(加权)','期末基本题得分','期末基本题得分(加权)','期末附加题得分','最终总成绩']
+		else:
+			headers = ['学号','姓名','总平时成绩','期末基本题得分','期末附加题得分','最终总成绩']
 		students = self.database.student_table.find(sClass = sClass)
 		# 期末考试
 		if sClass == '11':
@@ -1355,12 +1463,15 @@ class studentScoreManage(QMainWindow):
 			normal = self.database.escore_table.find(studentid = student[0], examtype = sClass)[0][-1]
 			# 期末考试
 			score = self.database.escore_table.find(studentid = student[0], examtype = examtype)[0]
-			data.append(int(normal))
-			data.append(Decimal(str(normal))*Decimal(str(weights[0])))
-			data.append(score[-1])
-			data.append(Decimal(str(score[-1]))*Decimal(str(weights[1])))
+			
+			data.append(int(normal)) # 总平时成绩
+			if not isDumpTotal:
+				data.append(Decimal(str(normal))*Decimal(str(weights[0]))) # 总平时成绩（加权）
+			data.append(score[-1]) # 期末考试基本题成绩
+			if not isDumpTotal:
+				data.append(Decimal(str(score[-1]))*Decimal(str(weights[1]))) # 期末考试基本题成绩（加权）
 
-			score_json = json.loads(score[-2])
+			score_json = json.loads(score[-2]) # 附加题成绩
 			if score_json['2'] != None:
 				data.append(float(score_json['2']))
 			else:
@@ -1380,7 +1491,7 @@ class studentScoreManage(QMainWindow):
 	def searchPre(self):
 		if self.showAll == True:
 			for row in self.search_rows:
-				self.setColumnColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+				self.setRowColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 			self.showAll = False
 		if self.res_is_null:
 			self.showMessageBox(QMessageBox.Information,'搜索结果','内容没找到！')
@@ -1389,12 +1500,12 @@ class studentScoreManage(QMainWindow):
 			self.showMessageBox(QMessageBox.Information,'搜索结果','已到达第一个搜索结果')
 			return
 		else:
-			self.setColumnColor(self.search_rows[self.scrollIndex],self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+			self.setRowColor(self.search_rows[self.scrollIndex],self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 			self.scrollIndex -= 1                                         #获取其行号
-			self.setColumnColor(self.search_rows[self.scrollIndex],self.setting['table']['search_select_color'])
+			self.setRowColor(self.search_rows[self.scrollIndex],self.setting['table']['search_select_color'])
 			self.Table.verticalScrollBar().setSliderPosition(self.search_rows[self.scrollIndex]-2)  #滚轮定位过去
 	
-	def setColumnColor(self, row, backgroundcolor=''):
+	def setRowColor(self, row, backgroundcolor=''):
 		temp = self.IS_USER_CHANGEITEM
 		self.IS_USER_CHANGEITEM = False
 		for i in range(len(self.TABLE_HEADERS)):
@@ -1404,12 +1515,12 @@ class studentScoreManage(QMainWindow):
 	def total_search_Res(self):
 		self.showAll = True
 		for row in self.search_rows:
-			self.setColumnColor(row,self.setting['table']['search_select_color'])#恢复表格正常的颜色
+			self.setRowColor(row,self.setting['table']['search_select_color'])#恢复表格正常的颜色
 
 	def search(self):
 		if self.showAll == True:
 			for row in self.search_rows:
-				self.setColumnColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+				self.setRowColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 			self.showAll = False
 
 		if self.search_rows==[]:
@@ -1420,10 +1531,10 @@ class studentScoreManage(QMainWindow):
 			return 
 
 		if self.scrollIndex!= -1:	
-			self.setColumnColor(self.search_rows[self.scrollIndex],self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+			self.setRowColor(self.search_rows[self.scrollIndex],self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 		
 		self.scrollIndex+=1
-		self.setColumnColor(self.search_rows[self.scrollIndex],self.setting['table']['search_select_color'])
+		self.setRowColor(self.search_rows[self.scrollIndex],self.setting['table']['search_select_color'])
 		self.Table.verticalScrollBar().setSliderPosition(self.search_rows[self.scrollIndex]-2)  #滚轮定位过去
 
 	def showSearch(self):
@@ -1434,14 +1545,14 @@ class studentScoreManage(QMainWindow):
 	def hideSearch(self):
 		self.searchFrame.setVisible(False)
 		for row in self.search_rows:
-			self.setColumnColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+			self.setRowColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 
 	def findRes(self):
 		search_content = self.search_lineEdit.text().strip()
 		items = self.Table.findItems(search_content, Qt.MatchExactly)#遍历表查找对应的item
 		if self.search_rows!=[]:
 			for row in self.search_rows:
-				self.setColumnColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
+				self.setRowColor(row,self.setting['table']["cell_backgroundcolor"])#恢复表格正常的颜色
 		self.search_rows = list(set([item.row() for item in items]))
 		self.search_rows.sort()
 
@@ -1527,7 +1638,6 @@ class studentScoreManage(QMainWindow):
 	def paintEvent(self,event):
 		painter = QPainter(self)
 		pixmap = QPixmap(":./images/bb3.jpg")
-		# painter.setOpacity(0.6)
 		painter.drawPixmap(self.rect(),pixmap)
 
 	def keyPressEvent(self,event):
