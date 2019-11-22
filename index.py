@@ -15,16 +15,225 @@ from decimal import Decimal
 import os
 import images
 from multiprocessing import Pool
+
 #仅仅windows支持
-import ctypes
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('myappid')
+# import ctypes
+# ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('myappid')
 ####
 
 class loadQSS:
 	@staticmethod
 	def getStyleSheet(file):
-		with open(file,'r') as f:
-			return f.read()
+		return """
+		QPushButton:hover{opacity:0.8;background:#c9c8c6;}
+		QPushButton:pressed{color:white;}
+		QPushButton{font-weight:bold;border-radius:8px;border:3px ridge #ccc;background:#aeaca9;padding:6px;color:black;}
+
+		#widget1{background:#F0F0F0;}
+		#widget2{background:#F0F0F0;border:2px solid grey;border-bottom:0;min-height:50px;}
+		#search-frame {
+			background:#4b4b4a;border-top:1px solid #ccc;
+		}
+
+		QSplitter:handle{background:#69F053;border-style:outset;}
+		QProgressBar{color:white;}
+
+		QTableWidget QHeaderView:section{background:#e6e6e6;}
+		QTableWidget QHeaderView:section:hover{background:#9fd5b7;}
+		QTableWidget{background:white;color:black;gridline-color:#d4d4d4;selection-background-color:#89CBCA;border: 2px solid grey;}
+		QTableWidget:item:focus{border:2px solid #217346;color:black;}
+
+		QDialog{background:url(:./images/bb3.jpg);color:white;}
+
+
+		QSpinBox{color:black;min-height:20}
+
+		#courseCombox{
+			border: 1px solid gray;
+			background:white;
+			vertical-align:middle;
+		}
+		#courseNameCombox{
+			border: 1px solid gray;
+			background:white;
+			text-align:center;
+		}
+		#scoreCombox{
+			border: 1px solid gray;
+			background:white;
+			text-align:center;
+		}
+
+
+
+		QComboBox {
+		    border: 1px solid gray;
+		    border-radius: 3px;
+		    padding: 1px 18px 1px 3px;
+		    min-height: 40px;
+		    min-width: 150px;
+		    background:white;
+		    font:blod;
+		}
+		QComboBox QAbstractItemView:item{
+		    min-height: 55px;
+		    min-width: 55px;
+		    outline:0px;
+		}
+		QComboBox QAbstractItemView::item:selected
+		{	
+		    background-color: rgba(54, 98, 180);
+		}
+
+		QComboBox:editable {
+		    background: white;
+
+		}
+		 
+		QComboBox:!editable, QComboBox::drop-down:editable {
+		     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+		     stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
+		     stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
+		}
+		 
+		QComboBox:!editable:on, QComboBox::drop-down:editable:on {
+		    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+		    stop: 0 #D3D3D3, stop: 0.4 #D8D8D8,
+		    stop: 0.5 #DDDDDD, stop: 1.0 #E1E1E1);
+		}
+		 
+		QComboBox:on {
+		    padding-top: 3px;
+		    padding-left: 4px;
+		}
+		 
+		QComboBox:drop-down {
+		    subcontrol-origin: padding;
+		    subcontrol-position: top right;
+		    width: 40px;
+		    border-left-width: 1px;
+		    border-left-color: darkgray;
+		    border-left-style: solid;
+		    border-top-right-radius: 3px;
+		    border-bottom-right-radius: 3px;
+		    background:#ccc;
+		}
+		 
+		QComboBox::down-arrow {
+		    image: url(:./images/down.png);
+		}
+		 
+		QComboBox::down-arrow:on {
+		    top: 1px;
+		    left: 1px;
+		}
+
+
+		QScrollBar:vertical
+		{
+			width:15px;
+			background:rgba(0,0,0,0%);
+			margin:0px,0px,0px,0px;
+			padding-top:16px;
+			padding-bottom:16px;
+		}
+		QScrollBar::handle:vertical
+		{
+			width:15px;
+			background:rgba(0,0,0,40%);
+			border-radius:4px;
+			min-height:20;
+		}
+		QScrollBar::handle:vertical:hover
+		{
+			width:15px;
+			background:rgba(0,0,0,60%);
+			border-radius:4px;
+			min-height:20;
+		}
+		QScrollBar::add-line:vertical
+		{
+			height:16px;width:15px;
+			border-image:url(:./images/down.png);
+			subcontrol-position:bottom;
+		}
+		QScrollBar::sub-line:vertical
+		{
+			height:16px;width:15px;
+			border-image:url(:./images/up.png);
+			subcontrol-position:top;
+		}
+		QScrollBar::add-line:vertical:hover
+		{
+			height:16px;width:15px;
+			border-image:url(:./images/down_hover.png);
+			subcontrol-position:bottom;
+		}
+		QScrollBar::sub-line:vertical:hover
+		{
+			height:16px;width:15px;
+			border-image:url(:./images/up_hover.png);
+			subcontrol-position:top;
+		}
+		QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical
+		{
+			background:rgba(0,0,0,15%);
+			border-radius:4px;
+		}
+
+
+		QScrollBar:horizontal
+		{
+			height:15px;
+			background:rgba(0,0,0,0%);
+			margin:0px,0px,0px,0px;
+			padding-right:16px;
+			padding-left:16px;
+		}
+		QScrollBar::handle:horizontal
+		{
+			width:15px;
+			background:rgba(0,0,0,40%);
+			border-radius:4px;
+			min-height:20;
+		}
+		QScrollBar::handle:horizontal:hover
+		{
+			width:15px;
+			background:rgba(0,0,0,60%);
+			border-radius:4px;
+			min-height:20;
+		}
+		QScrollBar::add-line:horizontal
+		{
+			height:15px;width:16px;
+			border-image:url(:./images/right.png);
+			subcontrol-position:right;
+		}
+		QScrollBar::sub-line:horizontal
+		{
+			height:15px;width:16px;
+			border-image:url(:./images/left.png);
+			subcontrol-position:left;
+		}
+		QScrollBar::add-line:horizontal:hover
+		{
+			height:15px;width:16px;
+			border-image:url(:./images/right_hover.png);
+			subcontrol-position:right;
+		}
+		QScrollBar::sub-line:horizontal:hover
+		{
+			height:15px;width:16px;
+			border-image:url(:./images/left_hover.png);
+			subcontrol-position:left;
+		}
+		QScrollBar::add-page:horizontal,QScrollBar::sub-page:horizontal
+		{
+			background:rgba(0,0,0,15%);
+			border-radius:4px;
+		}
+		"""
 
 class studentScoreManage(QMainWindow):
 	def __init__(self):
@@ -69,6 +278,7 @@ class studentScoreManage(QMainWindow):
 		return Decimal(str(value))*Decimal('0.75')
 
 	def show_total_normal_score(self,**args):
+		self.TABLE_MESSAGE.setText(self.courseNameCombox.currentText()+' - '+ '总平时成绩')
 		sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		all_normal_exam = []
 		all_normal_exam.append(sClass+'0')
@@ -144,7 +354,6 @@ class studentScoreManage(QMainWindow):
 		widget.setMinimumWidth(335)
 		widget.show()
 
-
 		sClass= str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		examtype = sClass + str(self.scoreCombox.currentIndex())		
 
@@ -184,6 +393,8 @@ class studentScoreManage(QMainWindow):
 		self.show_single_score(headers,s_datas,student_id)
 
 	def initCombox(self):
+		self.TABLE_MESSAGE = QLabel('223')
+		self.TABLE_MESSAGE.setFont(QFont('宋体',12, QFont.Bold))
 		self.courseCombox = QComboBox()
 		self.courseNameCombox = QComboBox()
 		self.scoreCombox = QComboBox()
@@ -191,23 +402,22 @@ class studentScoreManage(QMainWindow):
 		self.courseNameCombox.setObjectName('courseNameCombox')
 		self.scoreCombox.setObjectName('scoreCombox')
 
-		# 设置居中
-		lineEdit = QLineEdit()
-		lineEdit.setAlignment(Qt.AlignCenter)
-		lineEdit.setReadOnly(True)
-		lineEdit.setFocusPolicy(Qt.NoFocus)
-		self.courseCombox.setLineEdit(lineEdit)
+		# # 设置居中
+		# lineEdit = QLineEdit()
+		# lineEdit.setAlignment(Qt.AlignCenter)
+		# lineEdit.setReadOnly(True)
+		# lineEdit.setFocusPolicy(Qt.NoFocus)
+		# self.courseCombox.setLineEdit(lineEdit)
 
+		# lineEdit1 = QLineEdit()
+		# lineEdit1.setAlignment(Qt.AlignCenter)
+		# lineEdit1.setReadOnly(True)
+		# self.courseNameCombox.setLineEdit(lineEdit1)
 
-		lineEdit1 = QLineEdit()
-		lineEdit1.setAlignment(Qt.AlignCenter)
-		lineEdit1.setReadOnly(True)
-		self.courseNameCombox.setLineEdit(lineEdit1)
-
-		lineEdit2 = QLineEdit()
-		lineEdit2.setAlignment(Qt.AlignCenter)
-		lineEdit2.setReadOnly(True)
-		self.scoreCombox.setLineEdit(lineEdit2)		
+		# lineEdit2 = QLineEdit()
+		# lineEdit2.setAlignment(Qt.AlignCenter)
+		# lineEdit2.setReadOnly(True)
+		# self.scoreCombox.setLineEdit(lineEdit2)		
 
 		self.courseCombox.setItemDelegate(QStyledItemDelegate())
 		self.courseNameCombox.setItemDelegate(QStyledItemDelegate())
@@ -219,29 +429,17 @@ class studentScoreManage(QMainWindow):
 		self.scoreCombox.currentIndexChanged.connect(self.showScoreTable)
 		self.courseCombox.addItems(self.combox_content['course'])
 
-		self.show_total_button = QPushButton('总成绩')
-		self.show_total_normal_button = QPushButton('总平时成绩')
-		self.load_button = QPushButton("导入成绩")
-		self.load_student_button = QPushButton("导入学生")
-		self.clear_button = QPushButton('清空')
+		self.clear_button = QPushButton('清空全部')
 		self.clear_button.setToolTip("清空学生和学生成绩")
 		self.save_button = QPushButton('保存修改')
 
-		self.show_total_button.setObjectName('btn1')
-		self.show_total_normal_button.setObjectName('btn2')
-		self.load_button.setObjectName('btn3')
-		self.load_student_button.setObjectName('btn4')
 		self.clear_button.setObjectName('btn5')
 
-		self.show_total_button.clicked.connect(self.show_total_score)
-		self.show_total_normal_button.clicked.connect(lambda:self.show_total_normal_score())
-		self.load_student_button.clicked.connect(self.loadStudentData)
 		self.clear_button.clicked.connect(self.clearStudentScore)
-		self.load_button.clicked.connect(self.loadData)
 		self.save_button.clicked.connect(self.modifyScore)
 
 		course = QLabel('课程：')
-		courseName = QLabel("课程名称：")
+		courseName = QLabel("课程名：")
 		score = QLabel('考试：')
 		font = QFont('宋体',13, QFont.Bold)
 		course.setFont(font)
@@ -250,34 +448,39 @@ class studentScoreManage(QMainWindow):
 
 		hlayout = QHBoxLayout()
 		hlayout.addWidget(course)
+		hlayout.setSpacing(0)
 		hlayout.addWidget(self.courseCombox)
-		hlayout.addSpacing(0.2)		
+		hlayout.addSpacing(10)		
 		hlayout.addWidget(courseName)
 		hlayout.addWidget(self.courseNameCombox)
-		hlayout.addSpacing(0.2)
+		hlayout.addSpacing(10)
 		hlayout.addWidget(score)
 		hlayout.addWidget(self.scoreCombox)
 		hlayout.addStretch(0.5)
 		
-
 		hlayout1 = QHBoxLayout()
-		hlayout1.addWidget(self.show_total_button)
-		hlayout1.addWidget(self.show_total_normal_button)
-		#hlayout1.addWidget(self.load_button)
-		#hlayout1.addWidget(self.load_student_button)
 		hlayout1.addWidget(self.save_button)
+		hlayout1.addSpacing(10)
 		hlayout1.addWidget(self.clear_button)
-		#hlayout1.addStretch(1)
 
 		hlayout.addLayout(hlayout1)
 		vlayout = QVBoxLayout()
-		#vlayout.addLayout(hlayout1)
 		vlayout.addLayout(hlayout)
 
 		self.chooseWidget.setLayout(vlayout)
 		self.chooseWidget.setMinimumHeight(80)
+		
+		frame = QWidget()
+		hlayout = QHBoxLayout()
+		hlayout.addStretch(1)
+		hlayout.addWidget(self.TABLE_MESSAGE)
+		hlayout.addStretch(1)
+
+		frame.setLayout(hlayout)
+		frame.setObjectName('widget2')
 		vlayout = QVBoxLayout()
 		vlayout.addWidget(self.chooseWidget)
+		vlayout.addWidget(frame)
 		vlayout.addWidget(self.Table)
 		vlayout.setSpacing(0)
 		vlayout.setContentsMargins(100,-100,100,0)
@@ -310,39 +513,104 @@ class studentScoreManage(QMainWindow):
 
 
 	def initSetting(self):
-		with open('./setting.json','r') as f:
-			content = f.read()
-		self.setting = json.loads(content)#设置
-		with open('./decode.json','r') as f:
-			content = f.read()
-		self.decode = json.loads(content)
-		with open('./getArray.json','r') as f:
-			content = f.read()
-		self.combox_content = json.loads(content)
+		self.setting = {
+				"window":{
+					"background-color":"#C5F9F6",
+					"width":1000,
+					"height":600
+				},
+				"table":{
+					"cell_data_error":"#42FBDF",
+					"cell_data_modify":"#FFFBC1",
+					"cell_data_repeat":"#B3F781",
+					"cell_backgroundcolor":"white",
+					"search_select_color":"#89CBCA",
+					"table_delRow":"#FF0101",
+					"table_addRow":40,
+					"cell_width":230,
+					"cell_height":50
+				},
+				"splitter":{
+				},
+				"search":{
+					"height":60,
+					"background-color":"#4b4b4a"
+				},
+				"tree":{
+					"selected_color":"#AAF697",
+					"background":"#e6d4ae"
+				}
+				
+			}
+		self.decode = {
+				"0":"高等代数 1学期",
+				'1':"高等代数 2学期",
+				"2":"数学分析 2学期",
+				'3':'数学分析 3学期',
+
+				"00":"高等代数",
+				"10":'高等代数（1）',
+				"11":"高等代数（2）",
+				"20":"2数学分析（1）",
+				"21":"2数学分析（2）",
+				"30":"3数学分析（1）",
+				"31":"3数学分析（2）",
+				"32":"3数学分析（3）",
+				"000":"期中考试",
+				"001":"期末考试",
+				"100":"期中考试",
+				"101":"期末考试",
+				"110":"章节测验（1）",
+				"111":"章节测验（2）",
+				"112":"期末考试",
+				"200":"期中考试",
+				"201":"期末考试",
+				"210":"期中考试",
+				"211":"期末考试",
+				"300":"期中考试",
+				"301":"期末考试",
+				"310":"期中考试",
+				"311":"期末考试",
+				"320":"期中考试",
+				"321":'期末考试'
+			}
+		self.combox_content = {
+				'course':['高等代数 1学期','高等代数 2学期','数学分析 2学期','数学分析 3学期'],
+				'0':['高等代数'],
+				"1":['高等代数（1）','高等代数（2）'],
+				"2":['数学分析（1）','数学分析（2）'],
+				"3":['数学分析（1）','数学分析（2）','数学分析（3）']
+			}
 
 	def initMenu(self):
 		"""
 		初始化主窗口菜单
 		"""
 		self.load_menu = self.menuBar().addMenu('导入')  #
-		self.help_menu = self.menuBar().addMenu('帮助')  #
+		self.dump_menu = self.menuBar().addMenu('导出')  #
+		self.check_menu = self.menuBar().addMenu('查看')  #
+		self.find_menu = self.menuBar().addMenu('查找')
+		#self.help_menu = self.menuBar().addMenu('帮助')  #
+
 
 		self.load_toolbar = self.addToolBar('导入') # 工具栏
 		self.dump_toolbar = self.addToolBar('导出')
-		self.func_toolbar = self.addToolBar('Edit')
+		self.check_toolbar = self.addToolBar('成绩')
+		self.func_toolbar = self.addToolBar('功能')
 
 
 		self.status_bar = self.statusBar() # 状态显示
 		self.status_bar.setStyleSheet('color:white;')
-		#self.status_bar.showMessage("hello word")
+
 		self.load_action = QAction('导入成绩', self)				# 动作
 		self.dump_action = QAction('导出表格', self)				#
 		self.save_action = QAction('保存修改', self)				#
 		self.load_studentData_action = QAction('导入学生',self)
 		self.find_action = QAction('查找',self)
 		self.about_action = QAction('关于{}'.format(self.windowTitle()))
-		self.checkTotalScore_action = QAction('总成绩',self)
-		self.dumptotal_action = QAction('导出总成绩',self)
+		self.checkTotalScore_action = QAction('期末成绩登记表',self)
+		self.dumptotal_action = QAction('导出期末成绩登记表',self)
+		self.check_normal_action = QAction('总平时成绩',self)
 
 		self.find_action.setShortcut('Ctrl+F') 				# 设置快捷键
 
@@ -352,10 +620,11 @@ class studentScoreManage(QMainWindow):
 		self.find_action.setIcon(QIcon(r':./images/search96px.ico'))
 		self.checkTotalScore_action.setIcon(QIcon(r':./images/totalScore.ico'))
 		self.dumptotal_action.setIcon(QIcon(r':./images/dumpTotal.ico'))
+		self.check_normal_action.setIcon(QIcon(r':./images/normal.ico'))
 
 		self.load_action.triggered.connect(lambda:self.loadData())		# 动作事件响应
 		self.dump_action.triggered.connect(self.dumpData)		#
-
+		self.check_normal_action.triggered.connect(self.show_total_normal_score)
 		self.load_studentData_action.triggered.connect(self.loadStudentData)
 		self.find_action.triggered.connect(self.showSearch)
 		self.about_action.triggered.connect(self.showSoftwareMessage)
@@ -370,14 +639,23 @@ class studentScoreManage(QMainWindow):
 		self.dump_toolbar.addAction(self.dump_action)
 		self.dump_toolbar.addAction(self.dumptotal_action)
 
-		self.func_toolbar.addAction(self.find_action)
-		self.func_toolbar.addAction(self.checkTotalScore_action)
-							
+		self.check_toolbar.addAction(self.check_normal_action)		
+		self.check_toolbar.addAction(self.checkTotalScore_action)
+
+		self.func_toolbar.addAction(self.find_action)	
+
 		# 将动作添加到菜单栏
 		self.load_menu.addAction(self.load_studentData_action)
 		self.load_menu.addAction(self.load_action)
 
-		self.help_menu.addAction(self.about_action)
+		self.dump_menu.addAction(self.dump_action)
+		self.dump_menu.addAction(self.dumptotal_action)
+
+		self.check_menu.addAction(self.check_normal_action)
+		self.check_menu.addAction(self.checkTotalScore_action)
+
+		self.find_menu.addAction(self.find_action)
+		#self.help_menu.addAction(self.about_action)
 
 	def showSoftwareMessage(self):
 		widget = QDialog()
@@ -476,15 +754,18 @@ class studentScoreManage(QMainWindow):
 		self.lS_courseNameCombox.setItemDelegate(QStyledItemDelegate())
 		self.lS_scoreCombox.setItemDelegate(QStyledItemDelegate())
 
+		self.lS_courseCombox.setStyleSheet('border: 1px solid gray;background:white;')
+		self.lS_courseNameCombox.setStyleSheet('border: 1px solid gray;background:white;')
+		self.lS_scoreCombox.setStyleSheet('border: 1px solid gray;background:white;')
+
 		self.lS_courseCombox.addItem(self.courseCombox.currentText())
 		self.lS_courseNameCombox.addItem(self.courseNameCombox.currentText())
-		# self.lS_courseCombox.currentIndexChanged.connect(lambda:self.setCourseName(self.lS_courseCombox,self.lS_courseNameCombox))
-		# self.lS_courseCombox.addItems(self.combox_content['course'])
 
 		filepathlabel = QLabel("<font color='white'>文件路径：</font>")
 		filepathbutton = QPushButton('点击选择文件')
 
 		self.loadS_filepath = QLineEdit()
+		self.loadS_filepath.setPlaceholderText('请输入文件路径')
 		self.loadS_filepath.setMinimumHeight(25)
 		filepathbutton.clicked.connect(lambda:self.selectFile(widget,self.loadS_filepath))
 		
@@ -567,9 +848,6 @@ class studentScoreManage(QMainWindow):
 				self.database.student_table.insert(student[0], student[1], sClass)
 				studentid = self.database.student_table.find(number = student[0],sClass = sClass)[0][0]
 				self.createScoreRecord(sClass, studentid)
-				print('insert')
-			else:
-				print('exist')
 			self.ls_progressbar.setValue((i+1)/size*100)
 			QApplication.processEvents()
 
@@ -719,6 +997,8 @@ class studentScoreManage(QMainWindow):
 					return
 				QApplication.processEvents()
 			# 学号不重复， 数据也是正确的
+			self.status_bar.showMessage("正在保存。。。")
+
 			sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 			examtype = sClass + str(self.scoreCombox.currentIndex())
 			all_normal_exam = []
@@ -790,18 +1070,8 @@ class studentScoreManage(QMainWindow):
 				if self.TABLE_CONTENT == 2:
 					break;
 				studentid = self.STUDENT_ID[self.TABLE_DATA[row][0]]
-				# 获取考试成绩记录
-				exam_score = self.database.escore_table.find(examtype = examtype, studentid = studentid)[0]
-				score = json.loads(exam_score[-2])
-
-				total_score = 0
-				#修改客观题、主观题成绩
-				score['0'] = None
-				score['1'] = None
-				# 考虑附加题
-				if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
-					score['2'] = None
-				self.database.escore_table.update(id = exam_score[0], score_json = json.dumps(score), total_score = total_score)
+				self.deleteScoreRecord(sClass, studentid)
+				self.database.student_table.delete(id = studentid)
 				QApplication.processEvents()
 
 			#修改成绩
@@ -878,7 +1148,7 @@ class studentScoreManage(QMainWindow):
 				self.show_total_normal_score(sort_col = self.CURRENTCOL, reverse = self.REVERSE)
 			elif self.TABLE_CONTENT == 3:
 				self.show_total_score()
-
+		self.status_bar.showMessage('')
 		self.showMessageBox(QMessageBox.Information,'更改结果','更改成功')
 		self.IS_USER_CHANGEITEM = True		
 
@@ -1061,6 +1331,9 @@ class studentScoreManage(QMainWindow):
 					self.Table.item(row,len(self.TABLE_HEADERS)-1).setText(str(total) if total_is_valid else '')
 				
 				elif self.TABLE_CONTENT ==2: # 查看平时总成绩
+					if not processData.isNum(self.Table.item(row,2).text().strip()):# 数据如果不正确,将单元格填充为红色
+						self.Table.item(row,2).setBackground(QBrush(QColor(self.setting['table']['cell_data_error'])))
+						return
 					sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 					all_normal_exam = []
 					all_normal_exam.append(sClass+'0')
@@ -1168,6 +1441,7 @@ class studentScoreManage(QMainWindow):
 
 	def show_single_score(self,headers:'表头数据 list', datas, student_id):#显示成绩表
 		self.TABLE_CONTENT = 1
+		self.TABLE_MESSAGE.setText( self.courseNameCombox.currentText()+' - '+self.scoreCombox.currentText())
 		headers.append('成绩')
 		self.display_table(headers, datas, student_id)
 		QApplication.processEvents()
@@ -1228,6 +1502,10 @@ class studentScoreManage(QMainWindow):
 		self.ld_courseNameCombox = QComboBox()
 		self.ld_scoreCombox = QComboBox()
 
+		self.ld_courseCombox.setStyleSheet('border: 1px solid gray;background:white;')
+		self.ld_courseNameCombox.setStyleSheet('border: 1px solid gray;background:white;')
+		self.ld_scoreCombox.setStyleSheet('border: 1px solid gray;background:white;')
+		
 		self.ld_courseCombox.setItemDelegate(QStyledItemDelegate())
 		self.ld_courseNameCombox.setItemDelegate(QStyledItemDelegate())
 		self.ld_scoreCombox.setItemDelegate(QStyledItemDelegate())
@@ -1239,6 +1517,7 @@ class studentScoreManage(QMainWindow):
 		filepathlabel = QLabel("<font color='white'>文件路径：</font>")
 		filepathbutton = QPushButton('点击选择文件')
 		self.loadscore_filepath = QLineEdit()
+		self.loadscore_filepath.setPlaceholderText('请输入文件路径')
 		self.loadscore_filepath.setMinimumHeight(25)
 		filepathbutton.clicked.connect(lambda:self.selectFile(widget,self.loadscore_filepath))
 
@@ -1287,6 +1566,7 @@ class studentScoreManage(QMainWindow):
 		vlayout.addLayout(hlayout2)
 		vlayout.addLayout(hlayout3)
 		vlayout.addLayout(hlayout4)
+		vlayout.addWidget(QLabel("<font color='white'>对应的列数：</font>"))
 		vlayout.addLayout(hlayout5)
 		vlayout.addLayout(hlayout6)
 		vlayout.addLayout(hlayout7)
@@ -1392,7 +1672,7 @@ class studentScoreManage(QMainWindow):
 	def dumpFinalScore(self):
 		filepath, filetype = QFileDialog.getSaveFileName(self,
 			'请选择导出的目录',
-			".",
+			"./{}".format("《"+ self.courseNameCombox.currentText()+"》 期末成绩登记表"),
 			"""
 			Microsoft Excel 文件(*.xlsx);;
 			Microsoft Excel 97-2003 文件(*.xls)
@@ -1410,9 +1690,15 @@ class studentScoreManage(QMainWindow):
 			self.showMessageBox(QMessageBox.Warning,'失败',tip)		
 
 	def dumpData(self):
+		if self.TABLE_CONTENT == 1:
+			name = self.scoreCombox.currentText()
+		elif self.TABLE_CONTENT == 2:
+			name = '总平时成绩'
+		elif self.TABLE_CONTENT == 3:
+			name = '期末成绩登记表（详细）'
 		filepath, filetype = QFileDialog.getSaveFileName(self,
 			'请选择导出的目录',
-			".",
+			"./{}".format("《"+ self.courseNameCombox.currentText()+"》 " + name),
 			"""
 			Microsoft Excel 文件(*.xlsx);;
 			Microsoft Excel 97-2003 文件(*.xls)
@@ -1428,6 +1714,7 @@ class studentScoreManage(QMainWindow):
 
 	
 	def show_total_score(self):
+		self.TABLE_MESSAGE.setText(self.courseNameCombox.currentText() + ' - '+'期末成绩登记表')
 		sClass = str(self.courseCombox.currentIndex()) + str(self.courseNameCombox.currentIndex())
 		headers, datas, studentid = self.get_total_score(
 			sClass,

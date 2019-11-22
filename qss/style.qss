@@ -3,6 +3,7 @@ QPushButton:pressed{color:white;}
 QPushButton{font-weight:bold;border-radius:8px;border:3px ridge #ccc;background:#aeaca9;padding:6px;color:black;}
 
 #widget1{background:#F0F0F0;}
+#widget2{background:#F0F0F0;border:2px solid grey;border-bottom:0;min-height:50px;}
 #search-frame {
 	background:#4b4b4a;border-top:1px solid #ccc;
 }
@@ -18,12 +19,12 @@ QTableWidget:item:focus{border:2px solid #217346;color:black;}
 QDialog{background:url(:./images/bb3.jpg);color:white;}
 
 
-QSpinBox{color:black;}
+QSpinBox{color:black;min-height:20}
 
 #courseCombox{
 	border: 1px solid gray;
 	background:white;
-	text-align:center;
+	vertical-align:middle;
 }
 #courseNameCombox{
 	border: 1px solid gray;
@@ -59,6 +60,7 @@ QComboBox QAbstractItemView::item:selected
 
 QComboBox:editable {
     background: white;
+
 }
  
 QComboBox:!editable, QComboBox::drop-down:editable {
