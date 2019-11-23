@@ -24,30 +24,34 @@ def loadStudent(filepath,numbcol, namecol):
 	data = []
 	for x in range(0, worksheet.nrows):
 		row = worksheet.row(x)
-		data.append((str(row[numbcol-1].value).replace('.',''),row[namecol-1].value))
+		number = str(row[numbcol-1].value).replace('.','')
+		name = str(row[namecol-1].value)
+		if not isInteger(number) or isNum(name) or '课程' in name:
+			continue
+		data.append((number,name))
 	return data
 
 def loadScore(filepath,args:list):
-	print(filepath)
 	workbook = xlrd.open_workbook(filepath)
 	sheets = workbook.sheet_names()
 	worksheet = workbook.sheet_by_name(sheets[0])
 	datas = []
 	for row in range(0, worksheet.nrows):
 		data_detail = worksheet.row(row)
-		print(data_detail)
 		data = []
 		for i,index in enumerate(args):
 			value = data_detail[int(index)-1].value
 			if i == 0: # 学号
-				data.append(str(value))
-			elif index == 0: # 不导入
-				data.append(None)
+				value = str(value).replace('.','')
+				if isInteger(value):
+					data.append(str(value))
 			elif i==1: # 姓名
-				data.append(str(value))
+				if not isNum(value):
+					data.append(str(value))
 			else:  # 成绩
-				data.append(str(value))
-		if data:
+				if isNum(value):
+					data.append(str(value))
+		if len(data) == 3:
 			datas.append(tuple(data))
 	return datas
 
@@ -105,12 +109,10 @@ def dumpData(filePath, headers, datas, sheet_name="sheet1"):
 		workbook.save(filePath)
 		return (True, '文件保存成功')
 	except PermissionError as info:
-		print("文件已在其它地方打开", info)
 		return (False, '文件已在其它地方打开') 
 	except FileNotFoundError as info:
-		print("文件不存在，可能是文件名命名出错",info)
 		return (False, '文件不存在')
 
 if __name__ == '__main__':
-	filepath = 'C:/Users/Hasee/Desktop/《高等数学》第一阶段成绩登记表 .xlsx'
-	print(loadScore(filepath,[1,2,3,4,5]))
+	filepath = 'C:/Users/Hasee/Desktop/成绩管理资料/《高等数学》第一阶段成绩登记表 .xlsx'
+	print(loadScore(filepath, [2,3,4]))

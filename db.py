@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtSql import *
 from PyQt5.QtWidgets import QApplication, QMessageBox, QTableView
-from table import studentTable, escoreTable
+from table import studentTable, escoreTable, objective
 import json
 class DataBase(QTableView):
     def __init__(self):
@@ -14,6 +14,7 @@ class DataBase(QTableView):
         self.model = QSqlTableModel()
         self.student_table = studentTable.Student(self.model)
         self.escore_table = escoreTable.EScore(self.model)
+        self.objective_table = objective.Objective(self.model)
         self.createTable()
 
     def mysql_connect(self):
@@ -30,10 +31,12 @@ class DataBase(QTableView):
     def createTable(self):
         self.student_table.createTable()
         self.escore_table.createTable()
+        self.objective_table.createTable()
+
 
     def db_connect(self):
         self.db = QSqlDatabase.addDatabase('QSQLITE')    # 1
-        self.db.setDatabaseName('./学生成绩数据库.db')             # 2
+        self.db.setDatabaseName('./SZU_DB.db')             # 2
         if not self.db.open():                           # 3
             QMessageBox.critical(self, 'Database Connection', self.db.lastError().text())
 

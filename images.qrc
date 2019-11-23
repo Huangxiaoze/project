@@ -3,8 +3,8 @@
 <qresource>
 <file alias="images/addpage.png">images/addpage.png</file>
 <file alias="images/bb3.jpg">images/bb3.jpg</file>
-<file alias="images/class1.ico">images/class1.ico</file>
 <file alias="images/clear.ico">images/clear.ico</file>
+<file alias="images/del1.ico">images/del1.ico</file>
 <file alias="images/down.png">images/down.png</file>
 <file alias="images/down_hover.png">images/down_hover.png</file>
 <file alias="images/dump.ico">images/dump.ico</file>
@@ -14,11 +14,12 @@
 <file alias="images/left_hover.png">images/left_hover.png</file>
 <file alias="images/loadScore2.ico">images/loadScore2.ico</file>
 <file alias="images/normal.ico">images/normal.ico</file>
+<file alias="images/off.ico">images/off.ico</file>
+<file alias="images/on.ico">images/on.ico</file>
 <file alias="images/right.png">images/right.png</file>
 <file alias="images/right_hover.png">images/right_hover.png</file>
 <file alias="images/s.ico">images/s.ico</file>
 <file alias="images/search96px.ico">images/search96px.ico</file>
-<file alias="images/ss.ico">images/ss.ico</file>
 <file alias="images/start1.png">images/start1.png</file>
 <file alias="images/subpage.png">images/subpage.png</file>
 <file alias="images/tiao.png">images/tiao.png</file>

@@ -5,24 +5,24 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQueryModel,QSqlQuery
 from PyQt5.QtWidgets import QApplication, QMessageBox, QTableView
  
  
-class Student(QTableView):
+class Objective(QTableView):
     def __init__(self,db):
-        super(Student, self).__init__()
+        super(Objective, self).__init__()
         self.db = db
 
     def createTable(self):
         model = QSqlQuery()
         model.exec_('PRAGMA foreign_keys = ON;')
-        model.exec_(
+        if model.exec_(
             """
-            create table student(
-                id integer not null primary key,
-                number varchar(20),
-                name varchar(40),
-                sClass varchar(10)
+            create table objective(
+                examtype varchar(10) not null primary key,
+                hasObjective int
             )
             """
-            )
+            ):
+            self.insertData()
+
 
     def find(self,**args):
         condition = []
@@ -35,40 +35,41 @@ class Student(QTableView):
         model = QSqlQuery()
         model.exec_('PRAGMA foreign_keys = ON;')
         if condition!=[]:
-            sql = 'select * from student where {}'.format(And)
+            sql = 'select * from objective where {}'.format(And)
         else:
-            sql = 'select * from student'
+            sql = 'select * from objective'
         model.exec_(sql)
         res = []
         while model.next():
-            #print((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4)))
-            res.append((model.value(0),model.value(1),model.value(2),model.value(3)))
+            res.append((model.value(0),model.value(1)))
         return res
 
-    def update(self,id,**args):
+    def update(self,**args):
         if args == None:
             return
         model = QSqlQuery()
         model.exec_('PRAGMA foreign_keys = ON;')
         for key, value in args.items():
-            sql = "update student set {0}='{1}' where id={2}".format(key,value,id)
+            sql = "update objective set {0}='{1}' where examtype='{2}'".format(key,value,args['examtype'])
             model.exec_(sql)
 
-    def delete(self,id):
-        model = QSqlQuery()
-        model.exec_('PRAGMA foreign_keys = ON;')
-        sql = "delete from student where id={}".format(id)
-        res = model.exec_(sql)
-        return res
+    def insertData(self):
+        examtypes = ["000","001","100","101","110","111","112","200","201","210","211","300","301","310","311","320","321"
+            ]
+        for examtype in examtypes:
+            self.insert(examtype, 1)
 
-    def insert(self, number,name,sClass):
+
+
+
+    def insert(self, examtype, hasObjective):
         try:
             model = QSqlQuery()
             model.exec_('PRAGMA foreign_keys = ON;')
             sql = """
-            insert into student(number,name,sClass) 
-            values('{0}','{1}','{2}')
-            """.format(number,name,sClass)
+            insert into objective(examtype, hasObjective) 
+            values('{0}',{1})
+            """.format(examtype, hasObjective)
             model.exec_(sql)
         except:
             pass

@@ -20,7 +20,6 @@ class EScore(QTableView):
                 studentid int,
                 examtype varchar(10),
                 score_json text,
-                total_score real,
                 constraint studentid foreign key(studentid) references student(id)
             )
 
@@ -47,7 +46,7 @@ class EScore(QTableView):
         res = []
         while model.next():
             #print((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4),model.value(5)))
-            res.append((model.value(0),model.value(1),model.value(2),model.value(3),model.value(4)))
+            res.append((model.value(0),model.value(1),model.value(2),model.value(3)))
         return res
 
     def update(self,id,**args):
@@ -77,16 +76,16 @@ class EScore(QTableView):
         res = model.exec_(sql)
         return res
 
-    def insert(self, studentid, examtype,score_json, total_score):
+    def insert(self, studentid, examtype,score_json):
         try:
             model = QSqlQuery()
             model.exec_('PRAGMA foreign_keys = ON;')
             sql = """
-            insert into escore(studentid, examtype,score_json,total_score) 
-            values({0},'{1}','{2}',{3})
-            """.format(studentid, examtype,score_json,total_score)
+            insert into escore(studentid, examtype,score_json) 
+            values({0},'{1}','{2}')
+            """.format(studentid, examtype,score_json)
             res = model.exec_(sql)
-        except e:
+        except:
             pass
  
  
