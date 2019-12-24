@@ -12,7 +12,6 @@ from collections import defaultdict
 from decimal import Decimal
 import os
 import images
-from multiprocessing import Pool
 
 #仅仅windows支持
 # import ctypes
@@ -991,6 +990,7 @@ class studentScoreManage(QMainWindow):
 					node.setFlags(Qt.ItemIsEnabled)
 				elif self.TABLE_CONTENT == 2:  # 处于查看总平时成绩状态。
 					if j!=2 :
+						print("hello")
 						node.setFlags(Qt.ItemIsEnabled)
 				elif self.TABLE_CONTENT == 3:  # 处于查看总成绩状态，不允许修改表格。
 					node.setFlags(Qt.ItemIsEnabled)
