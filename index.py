@@ -1543,7 +1543,7 @@ class studentScoreManage(QMainWindow):
 
 				# 考虑附加题
 				if examtype == '112' or (examtype[-1]=='1' and sClass!='11'):
-					if self.hasObjective().checkState() == Qt.Checked:
+					if self.hasObjective.checkState() == Qt.Checked:
 						addition = self.Table.item(row,4).text().strip()
 					else:
 						addition = self.Table.item(row,3).text().strip()

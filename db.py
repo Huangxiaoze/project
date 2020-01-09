@@ -5,6 +5,7 @@ from PyQt5.QtSql import *
 from PyQt5.QtWidgets import QApplication, QMessageBox, QTableView
 from table import studentTable, escoreTable, objective
 import json
+import os 
 class DataBase(QTableView):
     def __init__(self):
         super(DataBase, self).__init__()
@@ -36,7 +37,8 @@ class DataBase(QTableView):
 
     def db_connect(self):
         self.db = QSqlDatabase.addDatabase('QSQLITE')    # 1
-        self.db.setDatabaseName('./SZU_DB.db')             # 2
+        print(os.path.abspath('.'))
+        self.db.setDatabaseName('SZU_DB.db')             # 2
         if not self.db.open():                           # 3
             QMessageBox.critical(self, 'Database Connection', self.db.lastError().text())
 
