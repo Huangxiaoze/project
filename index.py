@@ -1777,7 +1777,7 @@ class studentScoreManage(QMainWindow):
 	def createRightMenu_for_table(self):
 		menu = QMenu(self.Table)
 		del_action = QAction('删除',self.Table)
-		del_action.setIcon(QIcon("./images/del1.ico"))
+		del_action.setIcon(QIcon(":./images/del1.ico"))
 		del_action.triggered.connect(self.deleteRow)
 		menu.addAction(del_action)
 		menu.exec_(QCursor.pos())
